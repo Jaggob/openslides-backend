@@ -1185,6 +1185,7 @@ class ListOfSpeakers(Model):
             "motion": "list_of_speakers_id",
             "motion_block": "list_of_speakers_id",
             "assignment": "list_of_speakers_id",
+            "assignment_candidate": "list_of_speakers_id",
             "topic": "list_of_speakers_id",
             "meeting_mediafile": "list_of_speakers_id",
         },
@@ -2099,6 +2100,7 @@ class AssignmentCandidate(Model):
 
     id = fields.IntegerField(required=True, constant=True)
     weight = fields.IntegerField(default=10000)
+    application = fields.HTMLStrictField()
     assignment_id = fields.RelationField(
         to={"assignment": "candidate_ids"},
         required=True,
@@ -2110,6 +2112,18 @@ class AssignmentCandidate(Model):
     )
     meeting_id = fields.RelationField(
         to={"meeting": "assignment_candidate_ids"}, required=True, constant=True
+    )
+    list_of_speakers_id = fields.RelationField(
+        to={"list_of_speakers": "content_object_id"},
+        required=True,
+        constant=True,
+        equal_fields="meeting_id",
+    )
+    projection_ids = fields.RelationListField(
+        to={"projection": "content_object_id"}, equal_fields="meeting_id"
+    )
+    attachment_meeting_mediafile_ids = fields.RelationListField(
+        to={"meeting_mediafile": "attachment_ids"}, equal_fields="meeting_id"
     )
 
 
@@ -2230,6 +2244,7 @@ class MeetingMediafile(Model):
             "motion": "attachment_meeting_mediafile_ids",
             "topic": "attachment_meeting_mediafile_ids",
             "assignment": "attachment_meeting_mediafile_ids",
+            "assignment_candidate": "attachment_meeting_mediafile_ids",
         }
     )
     used_as_logo_projector_main_in_meeting_id = fields.RelationField(
@@ -2407,6 +2422,7 @@ class Projection(Model):
             "poll": "projection_ids",
             "topic": "projection_ids",
             "agenda_item": "projection_ids",
+            "assignment_candidate": "projection_ids",
             "assignment": "projection_ids",
             "motion_block": "projection_ids",
             "list_of_speakers": "projection_ids",
