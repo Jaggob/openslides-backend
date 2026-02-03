@@ -27,6 +27,10 @@ class PermissionMixin(Action):
         )
         meeting_id = assignment["meeting_id"]
 
+        # Managers should always be allowed, even without nominate permissions.
+        if has_perm(self.datastore, self.user_id, Permissions.Assignment.CAN_MANAGE, meeting_id):
+            return
+
         # check phase part
         if assignment.get("phase") == "voting":
             permission = Permissions.Assignment.CAN_MANAGE
