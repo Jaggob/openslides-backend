@@ -217,7 +217,7 @@ class MeetingUserMergeMixin(
                     "number",
                     "about_me",
                     "vote_weight",
-                    "vote_delegated_to_id",
+                    "vote_delegated_to_ids",
                     "meeting_id",
                 ],
                 "merge": [
@@ -284,7 +284,7 @@ class MeetingUserMergeMixin(
                     meeting_user_ids,
                     [
                         "vote_delegations_from_ids",
-                        "vote_delegated_to_id",
+                        "vote_delegated_to_ids",
                         "meeting_id",
                         "group_ids",
                     ],
@@ -334,23 +334,23 @@ class MeetingUserMergeMixin(
             for meeting_user_id in meeting_user.get("vote_delegations_from_ids", [])
         }
         proxy_meeting_user_ids = {
-            meeting_user_id
+            delegated_to_id
             for meeting_user in meeting_users.values()
-            if (meeting_user_id := meeting_user.get("vote_delegated_to_id"))
+            for delegated_to_id in meeting_user.get("vote_delegated_to_ids", [])
         }
         is_delegator_by_meeting: dict[int, bool] = {}
         delegation_conflicts: set[str] = set()
         for meeting_user in meeting_users.values():
             meeting_id = meeting_user["meeting_id"]
-            for field in ["vote_delegated_to_id", "vote_delegations_from_ids"]:
+            for field in ["vote_delegated_to_ids", "vote_delegations_from_ids"]:
                 if meeting_user.get(field):
                     if is_delegator_by_meeting.get(meeting_id) == (
-                        field != "vote_delegated_to_id"
+                        field != "vote_delegated_to_ids"
                     ):
                         delegation_conflicts.add(str(meeting_id))
                     else:
                         is_delegator_by_meeting[meeting_id] = (
-                            field == "vote_delegated_to_id"
+                            field == "vote_delegated_to_ids"
                         )
         if len(delegation_conflicts):
             messages.append(

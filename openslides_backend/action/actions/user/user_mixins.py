@@ -85,7 +85,7 @@ class UserMixin(CheckForArchivedMeetingMixin):
         "about_me": {"type": "string"},
         "vote_weight": decimal_schema,
         "structure_level_ids": id_list_schema,
-        "vote_delegated_to_id": optional_id_schema,
+        "vote_delegated_to_ids": id_list_schema,
         "vote_delegations_from_ids": id_list_schema,
         "group_ids": id_list_schema,
         "locked_out": {"type": "boolean"},

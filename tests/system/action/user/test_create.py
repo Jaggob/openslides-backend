@@ -251,7 +251,7 @@ class UserCreateActionTest(BaseActionTestCase):
             },
         )
         self.assert_model_exists("user/222", {"meeting_user_ids": [1]})
-        self.assert_model_exists("meeting_user/1", {"vote_delegated_to_id": 2})
+        self.assert_model_exists("meeting_user/1", {"vote_delegated_to_ids": [2]})
         self.assert_model_exists("group/11", {"meeting_user_ids": [2]})
         self.assert_model_exists("meeting/1", {"user_ids": [223]})
 
@@ -789,7 +789,7 @@ class UserCreateActionTest(BaseActionTestCase):
             {
                 "meeting_id": 1,
                 "user_id": 5,
-                "vote_delegated_to_id": 4,
+                "vote_delegated_to_ids": [4],
             },
         )
         self.assert_model_exists(
@@ -797,7 +797,7 @@ class UserCreateActionTest(BaseActionTestCase):
             {
                 "meeting_id": 1,
                 "user_id": 6,
-                "vote_delegated_to_id": 4,
+                "vote_delegated_to_ids": [4],
             },
         )
 

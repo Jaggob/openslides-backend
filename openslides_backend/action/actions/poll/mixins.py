@@ -89,7 +89,7 @@ class StopControl(CountdownControl, Action):
             if collectionfield_and_fqid_from_fqfield(k)[0]
             not in (
                 "meeting_user/user_id",
-                "meeting_user/vote_delegated_to_id",
+                "meeting_user/vote_delegated_to_ids",
                 "poll/pollmethod",
                 "poll/global_option_id",
                 "poll/meeting_id",
@@ -224,7 +224,7 @@ class StopControl(CountdownControl, Action):
         for group in groups:
             meeting_user_ids.update(group.get("meeting_user_ids", []))
         gmr = GetManyRequest(
-            "meeting_user", list(meeting_user_ids), ["user_id", "vote_delegated_to_id"]
+            "meeting_user", list(meeting_user_ids), ["user_id", "vote_delegated_to_ids"]
         )
         gm_result = self.datastore.get_many([gmr])
         meeting_users = gm_result.get("meeting_user", {}).values()
@@ -233,7 +233,11 @@ class StopControl(CountdownControl, Action):
         if meeting.get("users_enable_vote_delegations"):
             # fetch vote delegations
             delegated_to_mu_ids = list(
-                {id_ for mu in meeting_users if (id_ := mu.get("vote_delegated_to_id"))}
+                {
+                    delegated_to_id
+                    for mu in meeting_users
+                    for delegated_to_id in mu.get("vote_delegated_to_ids", [])
+                }
             )
             if delegated_to_mu_ids:
                 gmr = GetManyRequest("meeting_user", delegated_to_mu_ids, ["user_id"])
@@ -253,11 +257,14 @@ class StopControl(CountdownControl, Action):
                     "present": poll["meeting_id"]
                     in users[mu["user_id"]].get("is_present_in_meeting_ids", []),
                     "user_id": mu["user_id"],
-                    "vote_delegated_to_user_id": (
-                        mu_to_user_id[vote_mu_id]["user_id"]
-                        if (vote_mu_id := mu.get("vote_delegated_to_id"))
-                        and meeting.get("users_enable_vote_delegations")
-                        else None
+                    "vote_delegated_to_user_ids": (
+                        [
+                            mu_to_user_id[vote_mu_id]["user_id"]
+                            for vote_mu_id in mu.get("vote_delegated_to_ids", [])
+                            if vote_mu_id in mu_to_user_id
+                        ]
+                        if meeting.get("users_enable_vote_delegations")
+                        else []
                     ),
                 }
             )

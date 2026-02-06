@@ -188,11 +188,11 @@ class MeetingUser(Model):
     assignment_candidate_ids = fields.RelationListField(
         to={"assignment_candidate": "meeting_user_id"}, equal_fields="meeting_id"
     )
-    vote_delegated_to_id = fields.RelationField(
+    vote_delegated_to_ids = fields.RelationListField(
         to={"meeting_user": "vote_delegations_from_ids"}, equal_fields="meeting_id"
     )
     vote_delegations_from_ids = fields.RelationListField(
-        to={"meeting_user": "vote_delegated_to_id"}, equal_fields="meeting_id"
+        to={"meeting_user": "vote_delegated_to_ids"}, equal_fields="meeting_id"
     )
     chat_message_ids = fields.RelationListField(
         to={"chat_message": "meeting_user_id"}, equal_fields="meeting_id"
@@ -594,6 +594,9 @@ class Meeting(Model, MeetingModelMixin):
         default="Dear {name},\n\nthis is your personal OpenSlides login:\n\n{url}\nUsername: {username}\nPassword: {password}\n\n\nThis email was generated automatically."
     )
     users_enable_vote_delegations = fields.BooleanField()
+    users_vote_delegations_max_amount = fields.IntegerField(
+        default=0, constraints={"minimum": 0}
+    )
     users_forbid_delegator_in_list_of_speakers = fields.BooleanField()
     users_forbid_delegator_as_submitter = fields.BooleanField()
     users_forbid_delegator_as_supporter = fields.BooleanField()

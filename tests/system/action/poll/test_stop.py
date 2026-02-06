@@ -106,7 +106,7 @@ class PollStopActionTest(PollTestMixin, BasePollTestCase):
                 "meeting_user/3": {
                     "user_id": 4,
                     "vote_weight": "4.600000",
-                    "vote_delegated_to_id": 1,
+                    "vote_delegated_to_ids": [1],
                 },
             }
         )
@@ -136,19 +136,19 @@ class PollStopActionTest(PollTestMixin, BasePollTestCase):
                 "voted": True,
                 "present": True,
                 "user_id": user1,
-                "vote_delegated_to_user_id": None,
+                "vote_delegated_to_user_ids": [],
             },
             {
                 "voted": False,
                 "present": True,
                 "user_id": user2,
-                "vote_delegated_to_user_id": None,
+                "vote_delegated_to_user_ids": [],
             },
             {
                 "voted": True,
                 "present": False,
                 "user_id": user3,
-                "vote_delegated_to_user_id": user1,
+                "vote_delegated_to_user_ids": [user1],
             },
         ]
         # test history
@@ -225,7 +225,7 @@ class PollStopActionTest(PollTestMixin, BasePollTestCase):
                 "voted": False,
                 "present": True,
                 "user_id": 2,
-                "vote_delegated_to_user_id": None,
+                "vote_delegated_to_user_ids": [],
             },
         ]
 
@@ -276,7 +276,7 @@ class PollStopActionTest(PollTestMixin, BasePollTestCase):
                 "voted": False,
                 "present": False,
                 "user_id": 2,
-                "vote_delegated_to_user_id": None,
+                "vote_delegated_to_user_ids": [],
             },
         ]
 
@@ -307,7 +307,7 @@ class PollStopActionTest(PollTestMixin, BasePollTestCase):
                     "user_id": 2,
                     "meeting_id": 1,
                     "group_ids": [3],
-                    "vote_delegated_to_id": 13,
+                    "vote_delegated_to_ids": [13],
                 },
                 "user/3": {
                     "meeting_user_ids": [13],
@@ -338,7 +338,7 @@ class PollStopActionTest(PollTestMixin, BasePollTestCase):
                 "voted": False,
                 "present": False,
                 "user_id": 2,
-                "vote_delegated_to_user_id": 3,
+                "vote_delegated_to_user_ids": [3],
             },
         ]
 
@@ -369,7 +369,7 @@ class PollStopActionTest(PollTestMixin, BasePollTestCase):
                     "user_id": 2,
                     "meeting_id": 1,
                     "group_ids": [3],
-                    "vote_delegated_to_id": 13,
+                    "vote_delegated_to_ids": [13],
                 },
                 "user/3": {
                     "meeting_user_ids": [13],
@@ -400,7 +400,7 @@ class PollStopActionTest(PollTestMixin, BasePollTestCase):
                 "voted": False,
                 "present": False,
                 "user_id": 2,
-                "vote_delegated_to_user_id": None,
+                "vote_delegated_to_user_ids": [],
             },
         ]
 

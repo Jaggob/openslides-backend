@@ -808,7 +808,7 @@ def test_migration(write, finalize, assert_model, read_model):
             "supported_motion_ids": [61],
             "motion_submitter_ids": [141],
             "assignment_candidate_ids": [131],
-            "vote_delegated_to_id": 3,
+            "vote_delegated_to_ids": [3],
             "chat_message_ids": [151],
         },
     )

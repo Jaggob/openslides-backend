@@ -109,22 +109,22 @@ class UserUpdateSelfActionTest(BaseActionTestCase):
         self.set_models(
             {
                 "meeting_user/11": {"vote_delegations_from_ids": [13, 14]},
-                "meeting_user/13": {"vote_delegated_to_id": 11},
-                "meeting_user/14": {"vote_delegated_to_id": 11},
+                "meeting_user/13": {"vote_delegated_to_ids": [11]},
+                "meeting_user/14": {"vote_delegated_to_ids": [11]},
             }
         )
         response = self.request(
             "user.update_self",
             {
                 "meeting_id": 1,
-                "vote_delegated_to_id": 12,
+                "vote_delegated_to_ids": [12],
                 "vote_delegations_from_ids": [],
             },
         )
         self.assert_status_code(response, 200)
         self.assert_model_exists(
             "meeting_user/11",
-            {"vote_delegated_to_id": 12, "vote_delegations_from_ids": []},
+            {"vote_delegated_to_ids": [12], "vote_delegations_from_ids": []},
         )
 
     def test_update_foreign_delegation_error(self) -> None:
@@ -145,8 +145,8 @@ class UserUpdateSelfActionTest(BaseActionTestCase):
         self.set_models(
             {
                 "meeting_user/11": {"vote_delegations_from_ids": [13, 14]},
-                "meeting_user/13": {"vote_delegated_to_id": 11},
-                "meeting_user/14": {"vote_delegated_to_id": 11},
+                "meeting_user/13": {"vote_delegated_to_ids": [11]},
+                "meeting_user/14": {"vote_delegated_to_ids": [11]},
             }
         )
         response = self.request(
@@ -178,21 +178,21 @@ class UserUpdateSelfActionTest(BaseActionTestCase):
         self.set_models(
             {
                 "meeting_user/11": {"vote_delegations_from_ids": [12]},
-                "meeting_user/12": {"vote_delegated_to_id": 11},
+                "meeting_user/12": {"vote_delegated_to_ids": [11]},
             }
         )
         response = self.request(
             "user.update_self",
             {
                 "meeting_id": 1,
-                "vote_delegated_to_id": 12,
+                "vote_delegated_to_ids": [12],
                 "vote_delegations_from_ids": [],
             },
         )
         self.assert_status_code(response, 200)
         self.assert_model_exists(
             "meeting_user/11",
-            {"vote_delegated_to_id": 12, "vote_delegations_from_ids": []},
+            {"vote_delegated_to_ids": [12], "vote_delegations_from_ids": []},
         )
 
     def test_update_remove_delegation(self) -> None:
@@ -212,8 +212,8 @@ class UserUpdateSelfActionTest(BaseActionTestCase):
         self.set_models(
             {
                 "meeting_user/11": {"vote_delegations_from_ids": [12, 13]},
-                "meeting_user/12": {"vote_delegated_to_id": 11},
-                "meeting_user/13": {"vote_delegated_to_id": 11},
+                "meeting_user/12": {"vote_delegated_to_ids": [11]},
+                "meeting_user/13": {"vote_delegated_to_ids": [11]},
             }
         )
         response = self.request(
@@ -244,7 +244,7 @@ class UserUpdateSelfActionTest(BaseActionTestCase):
         self.create_user("mandy", [3])
         self.set_models(
             {
-                "meeting_user/11": {"vote_delegated_to_id": 12},
+                "meeting_user/11": {"vote_delegated_to_ids": [12]},
                 "meeting_user/12": {"vote_delegations_from_ids": [11]},
             }
         )
@@ -252,13 +252,13 @@ class UserUpdateSelfActionTest(BaseActionTestCase):
             "user.update_self",
             {
                 "meeting_id": 1,
-                "vote_delegated_to_id": None,
+                "vote_delegated_to_ids": [],
             },
         )
         self.assert_status_code(response, 200)
         self.assert_model_exists(
             "meeting_user/11",
-            {"vote_delegated_to_id": None},
+            {"vote_delegated_to_ids": []},
         )
 
     def test_update_delegation_without_meeting_id(self) -> None:
@@ -276,7 +276,7 @@ class UserUpdateSelfActionTest(BaseActionTestCase):
         self.create_user("mandy", [3])
         response = self.request(
             "user.update_self",
-            {"vote_delegated_to_id": 12},
+            {"vote_delegated_to_ids": [12]},
         )
         self.assert_status_code(response, 400)
         self.assertIn(
@@ -301,7 +301,7 @@ class UserUpdateSelfActionTest(BaseActionTestCase):
         self.create_user("mandy", [3])
         response = self.request(
             "user.update_self",
-            {"meeting_id": 4, "vote_delegated_to_id": 13},
+            {"meeting_id": 4, "vote_delegated_to_ids": [13]},
         )
         self.assert_status_code(response, 400)
         self.assertIn(
@@ -329,7 +329,7 @@ class UserUpdateSelfActionTest(BaseActionTestCase):
             },
         )
         self.assert_status_code(response, 200)
-        self.assert_model_exists("meeting_user/11", {"vote_delegated_to_id": None})
+        self.assert_model_exists("meeting_user/11", {"vote_delegated_to_ids": []})
 
     def test_update_delegation_self(self) -> None:
         self.create_meeting()
@@ -346,7 +346,7 @@ class UserUpdateSelfActionTest(BaseActionTestCase):
         self.create_user("mandy", [3])
         response = self.request(
             "user.update_self",
-            {"meeting_id": 1, "vote_delegated_to_id": 11},
+            {"meeting_id": 1, "vote_delegated_to_ids": [11]},
         )
         self.assert_status_code(response, 400)
         self.assertIn(
@@ -366,7 +366,7 @@ class UserUpdateSelfActionTest(BaseActionTestCase):
                 "group/3": {"meeting_user_ids": [12]},
             },
             "user.update_self",
-            {"meeting_id": 1, "vote_delegated_to_id": 12},
+            {"meeting_id": 1, "vote_delegated_to_ids": [12]},
             Permissions.User.CAN_EDIT_OWN_DELEGATION,
         )
 
@@ -382,6 +382,6 @@ class UserUpdateSelfActionTest(BaseActionTestCase):
                 "group/3": {"meeting_user_ids": [12]},
             },
             "user.update_self",
-            {"meeting_id": 1, "vote_delegated_to_id": 12},
+            {"meeting_id": 1, "vote_delegated_to_ids": [12]},
             None,
         )

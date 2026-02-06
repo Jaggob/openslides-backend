@@ -15,13 +15,13 @@ class UpdatePollTestCase(BasePollTestCase):
                 "voted": True,
                 "present": True,
                 "user_id": 2,
-                "vote_delegated_to_user_id": None,
+                "vote_delegated_to_user_ids": [],
             },
             {
                 "voted": True,
                 "present": False,
                 "user_id": 3,
-                "vote_delegated_to_user_id": 2,
+                "vote_delegated_to_user_ids": [2],
             },
         ]
         self.create_meeting()
@@ -607,7 +607,7 @@ class UpdatePollTestCase(BasePollTestCase):
                 "entitled_users_at_stop": [
                     {
                         **self.entitled_users_at_stop_data[0],
-                        "delegation_user_merged_into_id": 9,
+                        "delegation_user_merged_into_ids": [9],
                         "user_merged_into_id": 10,
                     },
                     self.entitled_users_at_stop_data[1],
@@ -623,7 +623,7 @@ class UpdatePollTestCase(BasePollTestCase):
                 "entitled_users_at_stop": [
                     {
                         **self.entitled_users_at_stop_data[0],
-                        "delegation_user_merged_into_id": 9,
+                        "delegation_user_merged_into_ids": [9],
                         "user_merged_into_id": 10,
                     },
                     self.entitled_users_at_stop_data[1],

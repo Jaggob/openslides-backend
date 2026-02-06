@@ -210,7 +210,7 @@ class UserActionDelegationHistoryTest(BaseActionTestCase):
         self.make_request(
             {
                 "vote_delegations_from_ids": [self.bob_id - 1],
-                "vote_delegated_to_id": None,
+                "vote_delegated_to_ids": [],
             },
             self.alice_id,
         )
