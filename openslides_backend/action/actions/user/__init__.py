@@ -13,6 +13,7 @@ from . import (  # noqa
     reset_password_to_default,
     save_saml_account,
     send_invitation_email,
+    delete_profile_image,
     set_profile_image,
     set_password,
     set_password_self,
