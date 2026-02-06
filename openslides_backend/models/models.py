@@ -212,7 +212,7 @@ class Mediafile(Model):
     child_ids = fields.RelationListField(to={'mediafile': 'parent_id'},equal_fields='owner_id')
     owner_id = fields.GenericRelationField(to={'organization': 'mediafile_ids', 'meeting': 'mediafile_ids'},required=True, constant=True)
     meeting_mediafile_ids = fields.RelationListField(to={'meeting_mediafile': 'mediafile_id'},on_delete=fields.OnDelete.CASCADE)
-    profile_image_user_ids = fields.RelationListField(to={'user': 'profile_image_id'})
+    profile_image_ids = fields.RelationListField(to={'profile_image': 'mediafile_id'})
 
 class Meeting(Model, MeetingModelMixin):
     collection = "meeting"
@@ -878,6 +878,15 @@ class PollCandidateList(Model):
     meeting_id = fields.RelationField(to={'meeting': 'poll_candidate_list_ids'},required=True, constant=True)
     option_id = fields.RelationField(to={'option': 'content_object_id'},required=True, constant=True, equal_fields='meeting_id')
 
+class ProfileImage(Model):
+    collection = "profile_image"
+    verbose_name = "profile image"
+
+    id = fields.IntegerField(required=True, constant=True)
+    user_id = fields.RelationField(to={'user': 'profile_image_id'},required=True, constant=True)
+    mediafile_id = fields.RelationField(to={'mediafile': 'profile_image_ids'},on_delete=fields.OnDelete.CASCADE, required=True, constant=True)
+    create_timestamp = fields.TimestampField()
+
 class Projection(Model):
     collection = "projection"
     verbose_name = "projection"
@@ -1113,7 +1122,7 @@ class User(Model):
     last_login = fields.TimestampField(read_only=True)
     external = fields.BooleanField()
     gender_id = fields.RelationField(to={'gender': 'user_ids'})
-    profile_image_id = fields.RelationField(to={'mediafile': 'profile_image_user_ids'})
+    profile_image_id = fields.RelationField(to={'profile_image': 'user_id'})
     organization_management_level = fields.CharField(constraints={'description': 'Hierarchical permission level for the whole organization.', 'enum': ['superadmin', 'can_manage_organization', 'can_manage_users']})
     is_present_in_meeting_ids = fields.RelationListField(to={'meeting': 'present_user_ids'})
     committee_ids = fields.RelationListField(to={'committee': 'user_ids'},read_only=True, constraints={'description': 'Calculated field.'})

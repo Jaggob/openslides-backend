@@ -4,17 +4,19 @@ from typing import Any
 
 import magic as python_magic
 
-from ....models.models import Mediafile, User
+from ....models.models import User
 from ....permissions.management_levels import OrganizationManagementLevel
 from ....permissions.permission_helper import has_organization_management_level
 from ....shared.exceptions import ActionException, MissingPermission
 from ....shared.patterns import KEYSEPARATOR, fqid_from_collection_and_id
 from ....shared.schema import optional_id_schema
+from ....shared.util import ONE_ORGANIZATION_ID
 from ...generics.update import UpdateAction
 from ...util.default_schema import DefaultSchema
 from ...util.register import register_action
-from ..mediafile.delete import MediafileDelete
 from ..mediafile.upload import MediafileUploadAction
+from ..profile_image.create import ProfileImageCreate
+from ..profile_image.delete import ProfileImageDelete
 
 MAX_PROFILE_IMAGE_SIZE = 5 * 1024 * 1024  # 5 MB
 
@@ -76,22 +78,32 @@ class UserSetProfileImage(UpdateAction):
         user_id = instance["id"]
         file_b64 = instance.pop("file")
         filename = instance.pop("filename")
-        instance.pop("published_to_meetings_in_organization_id", None)
+        published_to_meetings_in_organization_id = instance.pop(
+            "published_to_meetings_in_organization_id", None
+        )
 
         user = self.datastore.get(
             fqid_from_collection_and_id("user", user_id),
             ["profile_image_id"],
         )
-        if old_mediafile_id := user.get("profile_image_id"):
-            self.execute_other_action(MediafileDelete, [{"id": old_mediafile_id}])
+        if old_profile_image_id := user.get("profile_image_id"):
+            self.execute_other_action(
+                ProfileImageDelete, [{"id": old_profile_image_id}]
+            )
 
         title = f"profile-image-user-{user_id}-{int(time())}"
         owner_id = f"organization{KEYSEPARATOR}{ONE_ORGANIZATION_ID}"
+        publish_id = (
+            published_to_meetings_in_organization_id
+            if published_to_meetings_in_organization_id is not None
+            else ONE_ORGANIZATION_ID
+        )
         upload_payload = {
             "title": title,
             "owner_id": owner_id,
             "filename": filename,
             "file": file_b64,
+            "published_to_meetings_in_organization_id": publish_id,
         }
         result = self.execute_other_action(
             MediafileUploadAction, [upload_payload]
@@ -100,5 +112,20 @@ class UserSetProfileImage(UpdateAction):
             raise ActionException("Failed to upload profile image.")
         new_mediafile_id = result[0]["id"]
 
-        instance["profile_image_id"] = new_mediafile_id
+        create_timestamp = int(time())
+        result = self.execute_other_action(
+            ProfileImageCreate,
+            [
+                {
+                    "user_id": user_id,
+                    "mediafile_id": new_mediafile_id,
+                    "create_timestamp": create_timestamp,
+                }
+            ],
+        )
+        if not result:
+            raise ActionException("Failed to create profile image entry.")
+        new_profile_image_id = result[0]["id"]
+
+        instance["profile_image_id"] = new_profile_image_id
         return instance

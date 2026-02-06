@@ -8,7 +8,7 @@ from ....shared.patterns import fqid_from_collection_and_id
 from ...generics.update import UpdateAction
 from ...util.default_schema import DefaultSchema
 from ...util.register import register_action
-from ..mediafile.delete import MediafileDelete
+from ..profile_image.delete import ProfileImageDelete
 
 
 @register_action("user.delete_profile_image")
@@ -46,7 +46,9 @@ class UserDeleteProfileImage(UpdateAction):
             fqid_from_collection_and_id("user", user_id),
             ["profile_image_id"],
         )
-        if old_mediafile_id := user.get("profile_image_id"):
-            self.execute_other_action(MediafileDelete, [{"id": old_mediafile_id}])
+        if old_profile_image_id := user.get("profile_image_id"):
+            self.execute_other_action(
+                ProfileImageDelete, [{"id": old_profile_image_id}]
+            )
         instance["profile_image_id"] = None
         return instance

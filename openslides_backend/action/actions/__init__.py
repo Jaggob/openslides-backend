@@ -18,6 +18,7 @@ def prepare_actions_map() -> None:
         history_position,
         list_of_speakers,
         mediafile,
+        profile_image,
         meeting,
         meeting_mediafile,
         meeting_user,
