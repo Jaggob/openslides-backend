@@ -15,6 +15,7 @@ from ....permissions.permissions import Permissions
 from ....shared.exceptions import ActionException
 from ....shared.filters import And, FilterOperator
 from ....shared.patterns import KEYSEPARATOR
+from ....shared.schema import optional_id_schema
 from ...action import original_instances
 from ...generics.create import CreateAction
 from ...util.default_schema import DefaultSchema
@@ -41,7 +42,8 @@ class MediafileUploadAction(MediafileCreateMixin, CreateAction):
         optional_properties=["token", "parent_id"],
         additional_required_fields={"file": {"type": "string"}},
         additional_optional_fields={
-            "access_group_ids": MeetingMediafile.access_group_ids.get_schema()
+            "access_group_ids": MeetingMediafile.access_group_ids.get_schema(),
+            "published_to_meetings_in_organization_id": optional_id_schema,
         },
     )
     permission = Permissions.Mediafile.CAN_MANAGE
