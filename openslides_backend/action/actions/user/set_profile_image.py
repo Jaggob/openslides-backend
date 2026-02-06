@@ -10,13 +10,11 @@ from ....permissions.permission_helper import has_organization_management_level
 from ....shared.exceptions import ActionException, MissingPermission
 from ....shared.patterns import KEYSEPARATOR, fqid_from_collection_and_id
 from ....shared.schema import optional_id_schema
-from ....shared.util import ONE_ORGANIZATION_ID
 from ...generics.update import UpdateAction
 from ...util.default_schema import DefaultSchema
 from ...util.register import register_action
 from ..mediafile.delete import MediafileDelete
 from ..mediafile.upload import MediafileUploadAction
-from ..meeting_mediafile.create import MeetingMediafileCreate
 
 MAX_PROFILE_IMAGE_SIZE = 5 * 1024 * 1024  # 5 MB
 
@@ -78,9 +76,7 @@ class UserSetProfileImage(UpdateAction):
         user_id = instance["id"]
         file_b64 = instance.pop("file")
         filename = instance.pop("filename")
-        published_to_meetings_in_organization_id = instance.pop(
-            "published_to_meetings_in_organization_id", None
-        )
+        instance.pop("published_to_meetings_in_organization_id", None)
 
         user = self.datastore.get(
             fqid_from_collection_and_id("user", user_id),
@@ -91,17 +87,11 @@ class UserSetProfileImage(UpdateAction):
 
         title = f"profile-image-user-{user_id}-{int(time())}"
         owner_id = f"organization{KEYSEPARATOR}{ONE_ORGANIZATION_ID}"
-        publish_id = (
-            published_to_meetings_in_organization_id
-            if published_to_meetings_in_organization_id is not None
-            else ONE_ORGANIZATION_ID
-        )
         upload_payload = {
             "title": title,
             "owner_id": owner_id,
             "filename": filename,
             "file": file_b64,
-            "published_to_meetings_in_organization_id": publish_id,
         }
         result = self.execute_other_action(
             MediafileUploadAction, [upload_payload]
@@ -109,28 +99,6 @@ class UserSetProfileImage(UpdateAction):
         if not result:
             raise ActionException("Failed to upload profile image.")
         new_mediafile_id = result[0]["id"]
-
-        # Make the org mediafile accessible in meetings where the user is present
-        # by creating meeting_mediafile entries (public).
-        if published_to_meetings_in_organization_id is None:
-            user_data = self.datastore.get(
-                fqid_from_collection_and_id("user", user_id),
-                ["meeting_ids"],
-            )
-            meeting_ids = user_data.get("meeting_ids") or []
-        else:
-            meeting_ids = []
-        if meeting_ids:
-            mm_instances = [
-                {
-                    "meeting_id": meeting_id,
-                    "mediafile_id": new_mediafile_id,
-                    "is_public": True,
-                    "inherited_access_group_ids": [],
-                }
-                for meeting_id in meeting_ids
-            ]
-            self.execute_other_action(MeetingMediafileCreate, mm_instances)
 
         instance["profile_image_id"] = new_mediafile_id
         return instance
