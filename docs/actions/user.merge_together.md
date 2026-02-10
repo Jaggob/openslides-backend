@@ -73,9 +73,9 @@ The secondary users are deleted.
 
 Any poll that contains the id of any secondary user in its `entitled_users_at_stop` list will have it re-written to _additionally_ contain the new user id.
 This means that a line
-`{"voted": false, "present": true, "user_id": 4, "vote_delegated_to_user_id": 7}`
+`{"voted": false, "present": true, "user_id": 4, "vote_delegated_to_user_ids": [7]}`
 becomes
-`{"voted": false, "present": true, "user_id": 4, "vote_delegated_to_user_id": 7, "user_merged_into_id": 2, "delegation_user_merged_into_id": 10}`
+`{"voted": false, "present": true, "user_id": 4, "vote_delegated_to_user_ids": [7], "user_merged_into_id": 2, "delegation_user_merged_into_ids": [10]}`
 after two merges where for the first `user/4` was merged into `user/2` and for the second `user/7` was merged into `user/10`.
 This is to ensure that the client can recognize where users were merged, as simply replacing the ids may cause situations where a user is present on a list twice and not replacing them would mean that the user that voted would not be recognizable anymore.
 

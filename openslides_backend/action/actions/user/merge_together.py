@@ -193,16 +193,21 @@ class UserMergeTogether(
                 ) in secondary_id_to_main_ids:
                     vote["user_merged_into_id"] = secondary_id_to_main_ids[user_id]
                     changed = True
-                if (
-                    user_id := (
-                        vote.get("delegation_user_merged_into_id")
-                        or vote.get("vote_delegated_to_user_id")
-                    )
-                ) in secondary_id_to_main_ids:
-                    vote["delegation_user_merged_into_id"] = secondary_id_to_main_ids[
-                        user_id
-                    ]
-                    changed = True
+                delegated_user_ids = vote.get("vote_delegated_to_user_ids") or []
+                if delegated_user_ids:
+                    merged_ids: list[int | None] = []
+                    has_merge = False
+                    for delegated_user_id in delegated_user_ids:
+                        if delegated_user_id in secondary_id_to_main_ids:
+                            merged_ids.append(
+                                secondary_id_to_main_ids[delegated_user_id]
+                            )
+                            has_merge = True
+                        else:
+                            merged_ids.append(None)
+                    if has_merge:
+                        vote["delegation_user_merged_into_ids"] = merged_ids
+                        changed = True
             if changed:
                 poll_payloads.append({"id": id_, "entitled_users_at_stop": entitled})
         if len(poll_payloads):

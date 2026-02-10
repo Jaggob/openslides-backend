@@ -356,6 +356,9 @@ class Meeting(Model, MeetingModelMixin):
     users_email_subject = fields.CharField(default='OpenSlides access data')
     users_email_body = fields.TextField(default='Dear {name},\n\nthis is your personal OpenSlides login:\n\n{url}\nUsername: {username}\nPassword: {password}\n\n\nThis email was generated automatically.')
     users_enable_vote_delegations = fields.BooleanField()
+    users_vote_delegations_max_amount = fields.IntegerField(
+        default=0, constraints={"minimum": 0}
+    )
     users_forbid_delegator_in_list_of_speakers = fields.BooleanField()
     users_forbid_delegator_as_submitter = fields.BooleanField()
     users_forbid_delegator_as_supporter = fields.BooleanField()
@@ -512,10 +515,10 @@ class MeetingUser(Model):
     motion_working_group_speaker_ids = fields.RelationListField(to={'motion_working_group_speaker': 'meeting_user_id'},equal_fields='meeting_id')
     motion_submitter_ids = fields.RelationListField(to={'motion_submitter': 'meeting_user_id'},equal_fields='meeting_id')
     assignment_candidate_ids = fields.RelationListField(to={'assignment_candidate': 'meeting_user_id'},equal_fields='meeting_id')
-    vote_delegated_to_id = fields.RelationField(to={'meeting_user': 'vote_delegations_from_ids'},equal_fields='meeting_id')
-    vote_delegations_from_ids = fields.RelationListField(to={'meeting_user': 'vote_delegated_to_id'},equal_fields='meeting_id')
+    vote_delegated_to_ids = fields.RelationListField(to={'meeting_user': 'vote_delegations_from_ids'},equal_fields='meeting_id')
+    vote_delegations_from_ids = fields.RelationListField(to={'meeting_user': 'vote_delegated_to_ids'},equal_fields='meeting_id')
     chat_message_ids = fields.RelationListField(to={'chat_message': 'meeting_user_id'},equal_fields='meeting_id')
-    group_ids = fields.RelationListField(to={'group': 'meeting_user_ids'},required=True, equal_fields='meeting_id')
+    group_ids = fields.RelationListField(to={'group': 'meeting_user_ids'},equal_fields='meeting_id')
     structure_level_ids = fields.RelationListField(to={'structure_level': 'meeting_user_ids'},equal_fields='meeting_id')
 
 class Motion(Model):

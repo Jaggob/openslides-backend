@@ -2560,7 +2560,7 @@ class MeetingClone(BaseActionTestCase):
                 "meeting_user/11": {
                     "meeting_id": 1,
                     "user_id": 1,
-                    "vote_delegated_to_id": 22,
+                    "vote_delegated_to_ids": [22],
                     "group_ids": [2],
                 },
                 "meeting_user/22": {

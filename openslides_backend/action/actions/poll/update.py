@@ -238,7 +238,7 @@ class PollUpdateAction(
         if any(
             original_entry.get(field) != new_main_user_id_to_entry[user_id].get(field)
             for user_id, original_entry in original_main_user_id_to_entry.items()
-            for field in ["voted", "present", "user_id", "vote_delegated_to_user_id"]
+            for field in ["voted", "present", "user_id", "vote_delegated_to_user_ids"]
         ):
             raise ActionException(
                 "Can not change essential 'entitled_users_at_stop' data via poll.update"

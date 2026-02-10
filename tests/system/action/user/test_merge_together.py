@@ -968,19 +968,19 @@ class UserMergeTogether(BaseVoteTestCase):
     def test_with_multiple_delegations(self) -> None:
         self.set_models(
             {
-                "meeting_user/15": {"vote_delegated_to_id": 14},
+                "meeting_user/15": {"vote_delegated_to_ids": [14]},
                 "meeting_user/14": {"vote_delegations_from_ids": [15]},
-                "meeting_user/23": {"vote_delegated_to_id": 24},
+                "meeting_user/23": {"vote_delegated_to_ids": [24]},
                 "meeting_user/24": {"vote_delegations_from_ids": [23]},
                 "meeting_user/33": {"vote_delegations_from_ids": [34]},
-                "meeting_user/34": {"vote_delegated_to_id": 33},
+                "meeting_user/34": {"vote_delegated_to_ids": [33]},
             }
         )
         response = self.request("user.merge_together", {"id": 2, "user_ids": [4]})
         self.assert_status_code(response, 200)
         self.assert_model_exists("meeting_user/12", {"vote_delegations_from_ids": [15]})
         self.assert_model_exists("meeting_user/22", {"vote_delegations_from_ids": [23]})
-        self.assert_model_exists("meeting_user/46", {"vote_delegated_to_id": 33})
+        self.assert_model_exists("meeting_user/46", {"vote_delegated_to_ids": [33]})
 
     def set_up_polls_for_merge(self) -> None:
         self.set_models(
@@ -1011,7 +1011,7 @@ class UserMergeTogether(BaseVoteTestCase):
                 "user/5": {
                     "is_present_in_meeting_ids": [4],
                 },
-                "meeting_user/15": {"vote_delegated_to_id": 14},
+                "meeting_user/15": {"vote_delegated_to_ids": [14]},
                 "meeting_user/14": {"vote_delegations_from_ids": [15]},
                 "meeting_user/23": {"motion_submitter_ids": [1]},
                 "assignment/1": {
@@ -1218,7 +1218,7 @@ class UserMergeTogether(BaseVoteTestCase):
 
         def build_expected_user_dates(
             voted_present_user_delegated_merged: list[
-                tuple[bool, bool, int, int | None, int | None, int | None]
+                tuple[bool, bool, int, list[int], int | None, list[int] | None]
             ],
         ) -> list[dict[str, Any]]:
             return [
@@ -1226,9 +1226,13 @@ class UserMergeTogether(BaseVoteTestCase):
                     "voted": date[0],
                     "present": date[1],
                     "user_id": date[2],
-                    "vote_delegated_to_user_id": date[3],
+                    "vote_delegated_to_user_ids": date[3],
                     **({"user_merged_into_id": date[4]} if date[4] else {}),
-                    **({"delegation_user_merged_into_id": date[5]} if date[5] else {}),
+                    **(
+                        {"delegation_user_merged_into_ids": date[5]}
+                        if date[5]
+                        else {}
+                    ),
                 }
                 for date in voted_present_user_delegated_merged
             ]
@@ -1239,9 +1243,9 @@ class UserMergeTogether(BaseVoteTestCase):
                 "voted_ids": [5, 2],
                 "entitled_users_at_stop": build_expected_user_dates(
                     [
-                        (False, True, 2, None, None, None),
-                        (True, True, 4, None, 2, None),
-                        (True, False, 5, 4, None, 2),
+                        (False, True, 2, [], None, None),
+                        (True, True, 4, [], 2, None),
+                        (True, False, 5, [4], None, [2]),
                     ]
                 ),
             },
@@ -1252,9 +1256,9 @@ class UserMergeTogether(BaseVoteTestCase):
                 "voted_ids": [2],
                 "entitled_users_at_stop": build_expected_user_dates(
                     [
-                        (True, True, 2, None, None, None),
-                        (False, True, 4, None, 2, None),
-                        (False, False, 5, 4, None, 2),
+                        (True, True, 2, [], None, None),
+                        (False, True, 4, [], 2, None),
+                        (False, False, 5, [4], None, [2]),
                     ]
                 ),
             },
