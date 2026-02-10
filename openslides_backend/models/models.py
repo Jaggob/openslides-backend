@@ -65,9 +65,14 @@ class AssignmentCandidate(Model):
 
     id = fields.IntegerField(required=True, constant=True)
     weight = fields.IntegerField(default=10000)
+    application = fields.HTMLStrictField()
     assignment_id = fields.RelationField(to={'assignment': 'candidate_ids'},required=True, constant=True, equal_fields='meeting_id')
     meeting_user_id = fields.RelationField(to={'meeting_user': 'assignment_candidate_ids'},constant=True)
     meeting_id = fields.RelationField(to={'meeting': 'assignment_candidate_ids'},required=True, constant=True)
+    list_of_speakers_id = fields.RelationField(to={'list_of_speakers': 'content_object_id'},on_delete=fields.OnDelete.CASCADE, required=True, constant=True, equal_fields='meeting_id')
+    agenda_item_id = fields.RelationField(to={'agenda_item': 'content_object_id'},on_delete=fields.OnDelete.CASCADE, equal_fields='meeting_id')
+    projection_ids = fields.RelationListField(to={'projection': 'content_object_id'},equal_fields='meeting_id')
+    attachment_meeting_mediafile_ids = fields.RelationListField(to={'meeting_mediafile': 'attachment_ids'},equal_fields='meeting_id')
 
 class ChatGroup(Model):
     collection = "chat_group"
@@ -188,7 +193,7 @@ class ListOfSpeakers(Model):
     closed = fields.BooleanField(default=False)
     sequential_number = fields.IntegerField(required=True, read_only=True, constant=True, constraints={'description': 'The (positive) serial number of this model in its meeting. This number is auto-generated and read-only.'})
     moderator_notes = fields.HTMLStrictField()
-    content_object_id = fields.GenericRelationField(to={'motion': 'list_of_speakers_id', 'motion_block': 'list_of_speakers_id', 'assignment': 'list_of_speakers_id', 'topic': 'list_of_speakers_id', 'meeting_mediafile': 'list_of_speakers_id'},required=True, constant=True, equal_fields='meeting_id')
+    content_object_id = fields.GenericRelationField(to={'motion': 'list_of_speakers_id', 'motion_block': 'list_of_speakers_id', 'assignment': 'list_of_speakers_id', 'assignment_candidate': 'list_of_speakers_id', 'topic': 'list_of_speakers_id', 'meeting_mediafile': 'list_of_speakers_id'},required=True, constant=True, equal_fields='meeting_id')
     speaker_ids = fields.RelationListField(to={'speaker': 'list_of_speakers_id'},on_delete=fields.OnDelete.CASCADE, equal_fields='meeting_id')
     structure_level_list_of_speakers_ids = fields.RelationListField(to={'structure_level_list_of_speakers': 'list_of_speakers_id'},on_delete=fields.OnDelete.CASCADE, equal_fields='meeting_id')
     projection_ids = fields.RelationListField(to={'projection': 'content_object_id'},on_delete=fields.OnDelete.CASCADE, equal_fields='meeting_id')
@@ -365,6 +370,7 @@ class Meeting(Model, MeetingModelMixin):
     users_forbid_delegator_to_vote = fields.BooleanField()
     assignments_export_title = fields.CharField(default='Elections')
     assignments_export_preamble = fields.TextField()
+    assignments_enable_candidate_applications = fields.BooleanField(default=False)
     assignment_poll_ballot_paper_selection = fields.CharField(default='CUSTOM_NUMBER', constraints={'enum': ['NUMBER_OF_DELEGATES', 'NUMBER_OF_ALL_PARTICIPANTS', 'CUSTOM_NUMBER']})
     assignment_poll_ballot_paper_number = fields.IntegerField(default=8)
     assignment_poll_add_candidates_to_list_of_speakers = fields.BooleanField(default=False)
@@ -478,7 +484,7 @@ class MeetingMediafile(Model):
     access_group_ids = fields.RelationListField(to={'group': 'meeting_mediafile_access_group_ids'})
     list_of_speakers_id = fields.RelationField(to={'list_of_speakers': 'content_object_id'},on_delete=fields.OnDelete.CASCADE)
     projection_ids = fields.RelationListField(to={'projection': 'content_object_id'},on_delete=fields.OnDelete.CASCADE)
-    attachment_ids = fields.GenericRelationListField(to={'motion': 'attachment_meeting_mediafile_ids', 'topic': 'attachment_meeting_mediafile_ids', 'assignment': 'attachment_meeting_mediafile_ids'})
+    attachment_ids = fields.GenericRelationListField(to={'motion': 'attachment_meeting_mediafile_ids', 'topic': 'attachment_meeting_mediafile_ids', 'assignment': 'attachment_meeting_mediafile_ids', 'assignment_candidate': 'attachment_meeting_mediafile_ids'})
     used_as_logo_projector_main_in_meeting_id = fields.RelationField(to={'meeting': 'logo_projector_main_id'})
     used_as_logo_projector_header_in_meeting_id = fields.RelationField(to={'meeting': 'logo_projector_header_id'})
     used_as_logo_web_header_in_meeting_id = fields.RelationField(to={'meeting': 'logo_web_header_id'})
@@ -902,7 +908,7 @@ class Projection(Model):
     current_projector_id = fields.RelationField(to={'projector': 'current_projection_ids'},equal_fields='meeting_id')
     preview_projector_id = fields.RelationField(to={'projector': 'preview_projection_ids'},equal_fields='meeting_id')
     history_projector_id = fields.RelationField(to={'projector': 'history_projection_ids'},equal_fields='meeting_id')
-    content_object_id = fields.GenericRelationField(to={'projector_countdown': 'projection_ids', 'projector_message': 'projection_ids', 'poll': 'projection_ids', 'topic': 'projection_ids', 'agenda_item': 'projection_ids', 'assignment': 'projection_ids', 'motion_block': 'projection_ids', 'list_of_speakers': 'projection_ids', 'meeting_mediafile': 'projection_ids', 'motion': 'projection_ids', 'meeting': 'projection_ids'},required=True, constant=True, equal_fields='meeting_id')
+    content_object_id = fields.GenericRelationField(to={'projector_countdown': 'projection_ids', 'projector_message': 'projection_ids', 'poll': 'projection_ids', 'topic': 'projection_ids', 'agenda_item': 'projection_ids', 'assignment_candidate': 'projection_ids', 'assignment': 'projection_ids', 'motion_block': 'projection_ids', 'list_of_speakers': 'projection_ids', 'meeting_mediafile': 'projection_ids', 'motion': 'projection_ids', 'meeting': 'projection_ids'},required=True, constant=True, equal_fields='meeting_id')
     meeting_id = fields.RelationField(to={'meeting': 'all_projection_ids'},required=True, constant=True)
 
 class Projector(Model):
