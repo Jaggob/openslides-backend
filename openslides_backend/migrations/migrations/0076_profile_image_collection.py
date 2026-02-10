@@ -16,7 +16,7 @@ class Migration(BaseModelMigration):
     profile_image entries.
     """
 
-    target_migration_index = 76
+    target_migration_index = 77
 
     def migrate_models(self) -> list[BaseRequestEvent]:
         events: list[BaseRequestEvent] = []

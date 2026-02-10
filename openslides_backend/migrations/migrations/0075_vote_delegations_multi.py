@@ -14,7 +14,7 @@ class Migration(BaseModelMigration):
     and add meeting.users_vote_delegations_max_amount default.
     """
 
-    target_migration_index = 75
+    target_migration_index = 76
 
     def migrate_models(self) -> list[BaseRequestEvent]:
         events: list[BaseRequestEvent] = []
