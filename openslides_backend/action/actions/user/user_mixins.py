@@ -11,6 +11,7 @@ from ....presenter.search_users import SearchUsers
 from ....services.datastore.interface import DatastoreService
 from ....shared.exceptions import ActionException
 from ....shared.filters import Filter, FilterOperator
+from ....shared.interfaces.event import EventType
 from ....shared.patterns import FullQualifiedId, fqid_from_collection_and_id
 from ....shared.schema import decimal_schema, id_list_schema, optional_id_schema
 from ...action import Action, original_instances
@@ -83,6 +84,7 @@ class UserMixin(CheckForArchivedMeetingMixin):
         "comment": {"type": "string"},
         "number": {"type": "string"},
         "about_me": {"type": "string"},
+        "notification_state": {"type": "object"},
         "vote_weight": decimal_schema,
         "structure_level_ids": id_list_schema,
         "vote_delegated_to_id": optional_id_schema,
@@ -160,7 +162,23 @@ class UserMixin(CheckForArchivedMeetingMixin):
             self.apply_instance(instance)
             meeting_user_data["meeting_id"] = meeting_id
             meeting_user_data["user_id"] = instance["id"]
-            self.execute_other_action(MeetingUserSetData, [meeting_user_data])
+            action_results = self.execute_other_action(MeetingUserSetData, [meeting_user_data])
+
+            # Ensure notification state changes are explicitly visible for autoupdate streams.
+            if "notification_state" in meeting_user_data:
+                meeting_user_id = (
+                    action_results[0]["id"]
+                    if action_results and action_results[0] and action_results[0].get("id")
+                    else None
+                )
+                if meeting_user_id:
+                    self.events.append(
+                        self.build_event(
+                            EventType.Update,
+                            fqid_from_collection_and_id("meeting_user", meeting_user_id),
+                            {"notification_state": meeting_user_data["notification_state"]},
+                        )
+                    )
 
 
 class UpdateHistoryMixin(Action):

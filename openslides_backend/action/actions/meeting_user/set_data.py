@@ -34,6 +34,7 @@ class MeetingUserSetData(
             "comment",
             "number",
             "about_me",
+            "notification_state",
             "vote_weight",
             "structure_level_ids",
             "vote_delegated_to_id",

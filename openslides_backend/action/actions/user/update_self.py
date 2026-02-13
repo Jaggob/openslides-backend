@@ -23,7 +23,10 @@ class UserUpdateSelf(EmailCheckMixin, UpdateAction, UserMixin, UpdateHistoryMixi
         optional_properties=["username", "pronoun", "gender_id", "email"],
         additional_optional_fields={
             **MeetingUser().get_properties(
-                "meeting_id", "vote_delegated_to_id", "vote_delegations_from_ids"
+                "meeting_id",
+                "vote_delegated_to_id",
+                "vote_delegations_from_ids",
+                "notification_state",
             )
         },
     )

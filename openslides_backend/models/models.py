@@ -96,6 +96,7 @@ class MeetingUser(Model):
     comment = fields.HTMLStrictField()
     number = fields.CharField()
     about_me = fields.HTMLStrictField()
+    notification_state = fields.JSONField()
     vote_weight = fields.DecimalField(constraints={'minimum': '0.000001'})
     locked_out = fields.BooleanField()
     user_id = fields.RelationField(to={'user': 'meeting_user_ids'},required=True, constant=True)
