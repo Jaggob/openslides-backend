@@ -27,6 +27,7 @@ class AgendaItemUpdate(UpdateAction):
         ]
     )
     permission = Permissions.AgendaItem.CAN_MANAGE
+    history_information = "Agenda item updated"
 
     def calc_is_internal(
         self, type_: int | None, parent_is_internal: bool | None

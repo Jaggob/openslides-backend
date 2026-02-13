@@ -23,6 +23,7 @@ class AgendaItemDelete(DeleteAction):
     model = AgendaItem()
     schema = DefaultSchema(AgendaItem()).get_delete_schema()
     permission = Permissions.AgendaItem.CAN_MANAGE
+    history_information = "Agenda item removed"
 
     def update_instance(self, instance: dict[str, Any]) -> dict[str, Any]:
         fqid = fqid_from_collection_and_id(self.model.collection, instance["id"])

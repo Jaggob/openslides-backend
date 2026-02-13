@@ -31,6 +31,7 @@ class AgendaItemCreate(CreateActionWithInferredMeeting):
         ],
     )
     permission = Permissions.AgendaItem.CAN_MANAGE
+    history_information = "Agenda item added"
 
     relation_field_for_meeting = "content_object_id"
 

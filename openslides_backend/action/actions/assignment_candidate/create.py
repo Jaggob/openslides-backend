@@ -25,6 +25,7 @@ class AssignmentCandidateCreate(PermissionMixin, CreateActionWithInferredMeeting
     )
     history_information = "Candidate added"
     history_relation_field = "assignment_id"
+    add_self_history_information = True
 
     relation_field_for_meeting = "assignment_id"
 
