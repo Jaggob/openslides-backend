@@ -67,7 +67,7 @@ class PollStopActionTest(PollTestMixin, BasePollTestCase):
                 "meeting_user/2": {"vote_weight": Decimal("3.600000")},
                 "meeting_user/3": {
                     "vote_weight": Decimal("4.600000"),
-                    "vote_delegated_to_id": 1,
+                    "vote_delegated_to_ids": [1],
                 },
             }
         )
@@ -216,7 +216,7 @@ class PollStopActionTest(PollTestMixin, BasePollTestCase):
             {
                 "poll/1": {**self.poll_data, "content_object_id": "motion/1"},
                 "group/1": {"poll_ids": [1]},
-                "meeting_user/1": {"vote_delegated_to_id": 2},
+                "meeting_user/1": {"vote_delegated_to_ids": [2]},
             }
         )
         self.start_poll(1)
@@ -247,7 +247,7 @@ class PollStopActionTest(PollTestMixin, BasePollTestCase):
             {
                 "poll/1": {**self.poll_data, "content_object_id": "motion/1"},
                 "group/1": {"poll_ids": [1]},
-                "meeting_user/1": {"vote_delegated_to_id": 2},
+                "meeting_user/1": {"vote_delegated_to_ids": [2]},
             }
         )
         self.start_poll(1)

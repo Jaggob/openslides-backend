@@ -253,7 +253,7 @@ class SpeakerDeleteActionTest(BaseActionTestCase):
             self.create_user("delegatee", [1], meeting_user_ids=delegatee_id)
             self.set_models(
                 {
-                    "meeting_user/7": {"vote_delegated_to_id": delegatee_id[0]},
+                    "meeting_user/7": {"vote_delegated_to_ids": delegatee_id[0]},
                     f"meeting_user/{delegatee_id[0]}": {
                         "vote_delegations_from_ids": [7]
                     },

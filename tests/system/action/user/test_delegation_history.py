@@ -24,7 +24,7 @@ class UserActionDelegationHistoryTest(BaseActionTestCase):
         self.set_models(
             {
                 f"meeting_user/{self.alice_meeting_user_id}": {
-                    "vote_delegated_to_id": self.colin_meeting_user_id
+                    "vote_delegated_to_ids": self.colin_meeting_user_id
                 },
             }
         )
@@ -94,7 +94,7 @@ class UserActionDelegationHistoryTest(BaseActionTestCase):
         )
 
     def test_update_delegate_vote(self) -> None:
-        self.make_request({"vote_delegated_to_id": self.bob_id - 1}, self.alice_id)
+        self.make_request({"vote_delegated_to_ids": self.bob_id - 1}, self.alice_id)
         self.assert_delegated_to(self.alice_id, self.bob_id)
 
     def test_update_receive_delegated_vote(self) -> None:
@@ -104,7 +104,7 @@ class UserActionDelegationHistoryTest(BaseActionTestCase):
         self.assert_delegated_to(self.alice_id, self.bob_id)
 
     def test_create_delegate_vote(self) -> None:
-        self.make_request({"vote_delegated_to_id": self.bob_id - 1, "group_ids": [3]})
+        self.make_request({"vote_delegated_to_ids": self.bob_id - 1, "group_ids": [3]})
         self.assert_delegated_to(
             self.next_user_id,
             self.bob_id,
@@ -137,7 +137,7 @@ class UserActionDelegationHistoryTest(BaseActionTestCase):
 
     def test_update_re_delegate_vote(self) -> None:
         self.setup_delegation()
-        self.make_request({"vote_delegated_to_id": self.bob_id - 1}, self.alice_id)
+        self.make_request({"vote_delegated_to_ids": self.bob_id - 1}, self.alice_id)
         self.assert_alice_redelegated_to(self.bob_id)
 
     def test_update_re_delegate_vote_reverse(self) -> None:
@@ -196,7 +196,7 @@ class UserActionDelegationHistoryTest(BaseActionTestCase):
     def test_update_remove_received_delegation_and_delegate(self) -> None:
         self.setup_delegation()
         self.make_request(
-            {"vote_delegations_from_ids": [], "vote_delegated_to_id": self.bob_id - 1},
+            {"vote_delegations_from_ids": [], "vote_delegated_to_ids": self.bob_id - 1},
             self.colin_id,
         )
         self.assert_history_information(
@@ -228,7 +228,7 @@ class UserActionDelegationHistoryTest(BaseActionTestCase):
         self.make_request(
             {
                 "vote_delegations_from_ids": [self.bob_id - 1],
-                "vote_delegated_to_id": None,
+                "vote_delegated_to_ids": [],
             },
             self.alice_id,
         )
@@ -265,7 +265,7 @@ class UserActionDelegationHistoryTest(BaseActionTestCase):
                 "vote_delegations_from_ids": [self.bob_meeting_user_id]
             },
             f"meeting_user/{self.bob_meeting_user_id}": {
-                "vote_delegated_to_id": self.alice_meeting_user_id
+                "vote_delegated_to_ids": self.alice_meeting_user_id
             },
         }
         self.set_models(data)
@@ -409,7 +409,7 @@ class UserActionDelegationHistoryTest(BaseActionTestCase):
     def test_update_create_meeting_user_with_delegation(self) -> None:
         debra_id = self.create_user("debra")
         self.make_request(
-            {"vote_delegated_to_id": self.alice_id - 1, "group_ids": [3]}, debra_id
+            {"vote_delegated_to_ids": self.alice_id - 1, "group_ids": [3]}, debra_id
         )
         self.assert_history_information(
             f"user/{self.alice_id}",

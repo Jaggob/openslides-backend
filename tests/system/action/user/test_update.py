@@ -272,7 +272,7 @@ class UserUpdateActionTest(BaseActionTestCase):
                 "user_id": 23,
                 "meeting_id": 1,
                 "group_ids": [1],
-                "vote_delegated_to_id": 224,
+                "vote_delegated_to_ids": [224],
             },
         )
         self.assert_history_information(
@@ -314,7 +314,7 @@ class UserUpdateActionTest(BaseActionTestCase):
             {
                 "id": 22,
                 "meeting_id": 1,
-                "vote_delegated_to_id": 223,
+                "vote_delegated_to_ids": [223],
             },
         )
         self.assert_status_code(response, 200)
@@ -323,7 +323,7 @@ class UserUpdateActionTest(BaseActionTestCase):
             {
                 "user_id": 22,
                 "meeting_id": 1,
-                "vote_delegated_to_id": 223,
+                "vote_delegated_to_ids": [223],
             },
         )
         self.assert_model_exists(
@@ -340,7 +340,7 @@ class UserUpdateActionTest(BaseActionTestCase):
             {
                 "id": 22,
                 "meeting_id": 1,
-                "vote_delegated_to_id": None,
+                "vote_delegated_to_ids": [],
             },
         )
         self.assert_status_code(response, 200)
@@ -349,7 +349,7 @@ class UserUpdateActionTest(BaseActionTestCase):
             {
                 "user_id": 22,
                 "meeting_id": 1,
-                "vote_delegated_to_id": None,
+                "vote_delegated_to_ids": [],
             },
         )
         self.assert_model_exists(
@@ -408,7 +408,7 @@ class UserUpdateActionTest(BaseActionTestCase):
             }
         )
         response = self.request(
-            "user.update", {"id": 111, "vote_delegated_to_id": 11, "meeting_id": 1}
+            "user.update", {"id": 111, "vote_delegated_to_ids": [11], "meeting_id": 1}
         )
         self.assert_status_code(response, 400)
         self.assertIn(
@@ -1622,10 +1622,10 @@ class UserUpdateActionTest(BaseActionTestCase):
             {"user_id": 111, "meeting_id": 4, "number": "number1 in 4"},
         )
         self.assert_model_exists(
-            "meeting_user/3", {"user_id": 5, "meeting_id": 1, "vote_delegated_to_id": 7}
+            "meeting_user/3", {"user_id": 5, "meeting_id": 1, "vote_delegated_to_ids": [7]}
         )
         self.assert_model_exists(
-            "meeting_user/5", {"user_id": 6, "meeting_id": 1, "vote_delegated_to_id": 7}
+            "meeting_user/5", {"user_id": 6, "meeting_id": 1, "vote_delegated_to_ids": [7]}
         )
 
     def test_perm_group_B_user_can_update_no_permission(self) -> None:

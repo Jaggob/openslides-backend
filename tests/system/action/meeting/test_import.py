@@ -2069,7 +2069,7 @@ class MeetingImport(BaseActionTestCase):
                     "user_id": 14,
                     "personal_note_ids": [1],
                     "motion_submitter_ids": [],
-                    "vote_delegated_to_id": 1,
+                    "vote_delegated_to_ids": [1],
                     "group_ids": [1],
                 },
                 "user/1": {
@@ -2142,7 +2142,7 @@ class MeetingImport(BaseActionTestCase):
                         "user_id": 12,
                         "personal_note_ids": [1],
                         "motion_submitter_ids": [],
-                        "vote_delegated_to_id": 13,
+                        "vote_delegated_to_ids": [13],
                         "group_ids": [2],
                     },
                     "13": {
