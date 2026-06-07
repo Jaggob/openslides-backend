@@ -430,7 +430,8 @@ class UserUpdateActionTest(BaseActionTestCase):
         )
         self.assert_status_code(response, 400)
         self.assertIn(
-            "User 111 can't delegate the vote to himself.", response.json["message"]
+            "Cannot add vote delegations via vote_delegations_from_ids.",
+            response.json["message"],
         )
 
     def test_committee_manager_without_committee_ids(self) -> None:
@@ -1622,10 +1623,12 @@ class UserUpdateActionTest(BaseActionTestCase):
             {"user_id": 111, "meeting_id": 4, "number": "number1 in 4"},
         )
         self.assert_model_exists(
-            "meeting_user/3", {"user_id": 5, "meeting_id": 1, "vote_delegated_to_ids": [7]}
+            "meeting_user/3",
+            {"user_id": 5, "meeting_id": 1, "vote_delegated_to_ids": [7]},
         )
         self.assert_model_exists(
-            "meeting_user/5", {"user_id": 6, "meeting_id": 1, "vote_delegated_to_ids": [7]}
+            "meeting_user/5",
+            {"user_id": 6, "meeting_id": 1, "vote_delegated_to_ids": [7]},
         )
 
     def test_perm_group_B_user_can_update_no_permission(self) -> None:
@@ -4560,12 +4563,13 @@ class UserUpdateActionTest(BaseActionTestCase):
 
     def test_multi_delegation_doesnt_break_history(self) -> None:
         self.create_meeting(1)
+        self.set_models({"meeting/1": {"users_vote_delegations_max_amount": 100}})
         self.set_user_groups(1, [2])
         for i in range(2, 68):
             self.create_user(f"user{i}", group_ids=[3])
         response = self.request(
             "user.update",
-            {"id": 1, "meeting_id": 1, "vote_delegations_from_ids": list(range(2, 68))},
+            {"id": 1, "meeting_id": 1, "vote_delegated_to_ids": list(range(2, 68))},
         )
         self.assert_status_code(response, 200)
 
