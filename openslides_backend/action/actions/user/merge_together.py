@@ -205,6 +205,27 @@ class UserMergeTogether(
                         user_id
                     ]
                     changed = True
+                if delegated_to_user_ids := vote.get("delegation_user_merged_into_ids"):
+                    merged_delegated_to_user_ids = [
+                        secondary_id_to_main_ids.get(user_id, user_id)
+                        for user_id in delegated_to_user_ids
+                    ]
+                    if merged_delegated_to_user_ids != delegated_to_user_ids:
+                        vote["delegation_user_merged_into_ids"] = (
+                            merged_delegated_to_user_ids
+                        )
+                        changed = True
+                elif delegated_to_user_ids := vote.get("vote_delegated_to_user_ids"):
+                    merged_delegated_to_user_ids = [
+                        secondary_id_to_main_ids[user_id]
+                        for user_id in delegated_to_user_ids
+                        if user_id in secondary_id_to_main_ids
+                    ]
+                    if merged_delegated_to_user_ids:
+                        vote["delegation_user_merged_into_ids"] = (
+                            merged_delegated_to_user_ids
+                        )
+                        changed = True
             if changed:
                 poll_payloads.append({"id": id_, "entitled_users_at_stop": entitled})
         if len(poll_payloads):
@@ -275,6 +296,11 @@ class UserMergeTogether(
                             field: current.pop(field)
                             for field in UserMixin.transfer_field_list
                             if field in current
+                            and field
+                            not in {
+                                "vote_delegated_to_ids",
+                                "vote_delegations_from_ids",
+                            }
                         },
                     }
                 )

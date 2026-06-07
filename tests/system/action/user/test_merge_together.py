@@ -5,6 +5,8 @@ from decimal import Decimal
 from typing import Any, Literal, cast
 from zoneinfo import ZoneInfo
 
+from psycopg.types.json import Jsonb
+
 from openslides_backend.action.actions.speaker.speech_state import SpeechState
 from openslides_backend.action.relations.relation_manager import RelationManager
 from openslides_backend.action.util.actions_map import actions_map
@@ -820,16 +822,84 @@ class UserMergeTogether(BaseVoteTestCase):
     def test_with_multiple_delegations(self) -> None:
         self.set_models(
             {
+                "user/6": {"meeting_user_ids": [16]},
                 "meeting_user/15": {"vote_delegated_to_ids": [14]},
+                "meeting_user/16": {
+                    "user_id": 6,
+                    "meeting_id": 1,
+                    "group_ids": [2],
+                    "vote_delegated_to_ids": [14],
+                },
                 "meeting_user/43": {"vote_delegated_to_ids": [44]},
                 "meeting_user/74": {"vote_delegated_to_ids": [73]},
+                "group/2": {"meeting_user_ids": [12, 14, 15, 16]},
             }
         )
         response = self.request("user.merge_together", {"id": 2, "user_ids": [4]})
         self.assert_status_code(response, 200)
-        self.assert_model_exists("meeting_user/12", {"vote_delegations_from_ids": [15]})
+        self.assert_model_exists(
+            "meeting_user/12", {"vote_delegations_from_ids": [15, 16]}
+        )
         self.assert_model_exists("meeting_user/42", {"vote_delegations_from_ids": [43]})
         self.assert_model_exists("meeting_user/106", {"vote_delegated_to_ids": [73]})
+
+    def test_merge_updates_multiple_delegated_entitled_users_at_stop(self) -> None:
+        self.create_topic(1, 1)
+        self.set_models(
+            {
+                "poll/1": {
+                    "title": "Poll with multiple delegated users",
+                    "content_object_id": "topic/1",
+                    "type": "named",
+                    "pollmethod": "Y",
+                    "backend": "fast",
+                    "state": "finished",
+                    "onehundred_percent_base": "Y",
+                    "meeting_id": 1,
+                    "entitled_users_at_stop": Jsonb(
+                        [
+                            {
+                                "voted": False,
+                                "present": False,
+                                "user_id": 5,
+                                "vote_delegated_to_user_ids": [3, 4],
+                            },
+                            {
+                                "voted": False,
+                                "present": True,
+                                "user_id": 4,
+                                "vote_delegated_to_user_ids": [],
+                            },
+                        ]
+                    ),
+                }
+            }
+        )
+
+        response = self.request("user.merge_together", {"id": 2, "user_ids": [3, 4]})
+
+        self.assert_status_code(response, 200)
+        self.assert_model_exists(
+            "poll/1",
+            {
+                "entitled_users_at_stop": [
+                    {
+                        "voted": False,
+                        "present": False,
+                        "user_id": 5,
+                        "vote_delegated_to_user_ids": [3, 4],
+                        "delegation_user_merged_into_ids": [2, 2],
+                    },
+                    {
+                        "voted": False,
+                        "present": True,
+                        "user_id": 4,
+                        "vote_delegated_to_user_ids": [],
+                        "user_merged_into_id": 2,
+                    },
+                ],
+            },
+        )
 
     def set_up_polls_for_merge(self) -> None:
         self.create_assignment(1, 1)
@@ -1036,9 +1106,13 @@ class UserMergeTogether(BaseVoteTestCase):
                     "voted": date[0],
                     "present": date[1],
                     "user_id": date[2],
-                    "vote_delegated_to_user_id": date[3],
+                    "vote_delegated_to_user_ids": [date[3]] if date[3] else [],
                     **({"user_merged_into_id": date[4]} if date[4] else {}),
-                    **({"delegation_user_merged_into_id": date[5]} if date[5] else {}),
+                    **(
+                        {"delegation_user_merged_into_ids": [date[5]]}
+                        if date[5]
+                        else {}
+                    ),
                 }
                 for date in voted_present_user_delegated_merged
             ]

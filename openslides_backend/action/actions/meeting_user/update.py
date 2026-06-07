@@ -33,6 +33,8 @@ class MeetingUserUpdate(
         "motion_supporter_ids",
         "motion_submitter_ids",
         "chat_message_ids",
+        "vote_delegated_to_ids",
+        "vote_delegations_from_ids",
     ]
 
     model = MeetingUser()
