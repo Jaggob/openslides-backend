@@ -925,6 +925,53 @@ class UserMergeTogether(BaseVoteTestCase):
             },
         )
 
+    def test_merge_updates_legacy_delegated_entitled_user_at_stop_to_plural(
+        self,
+    ) -> None:
+        self.create_topic(1, 1)
+        self.set_models(
+            {
+                "poll/1": {
+                    "title": "Poll with legacy delegated user",
+                    "content_object_id": "topic/1",
+                    "type": "named",
+                    "pollmethod": "Y",
+                    "backend": "fast",
+                    "state": "finished",
+                    "onehundred_percent_base": "Y",
+                    "meeting_id": 1,
+                    "entitled_users_at_stop": Jsonb(
+                        [
+                            {
+                                "voted": False,
+                                "present": False,
+                                "user_id": 5,
+                                "vote_delegated_to_user_id": 3,
+                            }
+                        ]
+                    ),
+                }
+            }
+        )
+
+        response = self.request("user.merge_together", {"id": 2, "user_ids": [3]})
+
+        self.assert_status_code(response, 200)
+        self.assert_model_exists(
+            "poll/1",
+            {
+                "entitled_users_at_stop": [
+                    {
+                        "voted": False,
+                        "present": False,
+                        "user_id": 5,
+                        "vote_delegated_to_user_id": 3,
+                        "delegation_user_merged_into_ids": [2],
+                    }
+                ],
+            },
+        )
+
     def set_up_polls_for_merge(self) -> None:
         self.create_assignment(1, 1)
         self.create_motion(4, 4)

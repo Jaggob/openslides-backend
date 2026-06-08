@@ -195,16 +195,6 @@ class UserMergeTogether(
                 ) in secondary_id_to_main_ids:
                     vote["user_merged_into_id"] = secondary_id_to_main_ids[user_id]
                     changed = True
-                if (
-                    user_id := (
-                        vote.get("delegation_user_merged_into_id")
-                        or vote.get("vote_delegated_to_user_id")
-                    )
-                ) in secondary_id_to_main_ids:
-                    vote["delegation_user_merged_into_id"] = secondary_id_to_main_ids[
-                        user_id
-                    ]
-                    changed = True
                 if delegated_to_user_ids := vote.get("delegation_user_merged_into_ids"):
                     merged_delegated_to_user_ids = [
                         secondary_id_to_main_ids.get(user_id, user_id)
@@ -215,6 +205,17 @@ class UserMergeTogether(
                             merged_delegated_to_user_ids
                         )
                         changed = True
+                elif (
+                    user_id := (
+                        vote.get("delegation_user_merged_into_id")
+                        or vote.get("vote_delegated_to_user_id")
+                    )
+                ) in secondary_id_to_main_ids:
+                    vote["delegation_user_merged_into_ids"] = [
+                        secondary_id_to_main_ids[user_id]
+                    ]
+                    vote.pop("delegation_user_merged_into_id", None)
+                    changed = True
                 elif delegated_to_user_ids := vote.get("vote_delegated_to_user_ids"):
                     merged_delegated_to_user_ids = [
                         secondary_id_to_main_ids[user_id]
