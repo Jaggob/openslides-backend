@@ -4,6 +4,7 @@ from ....models.models import MeetingUser, User
 from ....permissions.permission_helper import has_perm
 from ....permissions.permissions import Permissions
 from ....shared.exceptions import ActionException, MissingPermission
+from ....shared.schema import id_list_schema
 from ...generics.update import UpdateAction
 from ...mixins.meeting_user_helper import get_meeting_user
 from ...mixins.send_email_mixin import EmailCheckMixin
@@ -22,9 +23,8 @@ class UserUpdateSelf(EmailCheckMixin, UpdateAction, UserMixin, UpdateHistoryMixi
     schema = DefaultSchema(User()).get_default_schema(
         optional_properties=["username", "pronoun", "gender_id", "email"],
         additional_optional_fields={
-            **MeetingUser().get_properties(
-                "meeting_id", "vote_delegated_to_ids", "vote_delegations_from_ids"
-            )
+            **MeetingUser().get_properties("meeting_id", "vote_delegations_from_ids"),
+            "vote_delegated_to_ids": {**id_list_schema, "uniqueItems": False},
         },
     )
     check_email_field = "email"

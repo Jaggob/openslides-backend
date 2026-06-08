@@ -398,12 +398,21 @@ class MeetingUserMixin(MeetingUserHistoryMixin):
                 raise ActionException(
                     f"User {user_id_self} cannot delegate his vote to more than {max_amount} users."
                 )
+            meeting_users_delegated_to = self.datastore.get_many(
+                [
+                    GetManyRequest(
+                        "meeting_user",
+                        delegated_to_ids,
+                        ["vote_delegated_to_ids", "user_id", "meeting_id"],
+                    )
+                ]
+            )["meeting_user"]
             for delegated_to_id in delegated_to_ids:
-                meeting_user_delegated_to = self.datastore.get(
-                    fqid_from_collection_and_id("meeting_user", delegated_to_id),
-                    ["vote_delegated_to_ids", "user_id", "meeting_id"],
-                    raise_exception=True,
-                )
+                if delegated_to_id not in meeting_users_delegated_to:
+                    raise ModelDoesNotExist(
+                        fqid_from_collection_and_id("meeting_user", delegated_to_id)
+                    )
+                meeting_user_delegated_to = meeting_users_delegated_to[delegated_to_id]
                 if meeting_user_delegated_to.get("meeting_id") != meeting_id_self:
                     raise ActionException(
                         f"User {meeting_user_delegated_to.get('user_id')}'s delegation id don't belong to meeting {meeting_id_self}."

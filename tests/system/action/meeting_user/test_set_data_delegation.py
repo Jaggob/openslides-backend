@@ -53,6 +53,16 @@ class UserUpdateDelegationActionTest(BaseActionTestCase):
             "meeting_user/13", {"vote_delegations_from_ids": [12, 14]}
         )
 
+    def test_delegated_to_duplicate_user_is_deduplicated_before_limit_check(
+        self,
+    ) -> None:
+        response = self.request_executor({"vote_delegated_to_ids": [13, 13]})
+        self.assert_status_code(response, 200)
+        self.assert_model_exists("meeting_user/14", {"vote_delegated_to_ids": [13]})
+        self.assert_model_exists(
+            "meeting_user/13", {"vote_delegations_from_ids": [12, 14]}
+        )
+
     def test_delegated_to_multiple_users_default_limit_error(self) -> None:
         response = self.request_executor({"vote_delegated_to_ids": [11, 13]})
         self.assert_status_code(response, 400)
