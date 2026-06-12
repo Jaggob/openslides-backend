@@ -430,7 +430,7 @@ class UserUpdateActionTest(BaseActionTestCase):
         )
         self.assert_status_code(response, 400)
         self.assertIn(
-            "Cannot add vote delegations via vote_delegations_from_ids.",
+            "User 111 can't delegate the vote to himself.",
             response.json["message"],
         )
 

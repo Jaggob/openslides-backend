@@ -320,7 +320,7 @@ class UserUpdateSelfActionTest(BaseActionTestCase):
             },
         )
         self.assert_status_code(response, 200)
-        self.assert_model_exists("meeting_user/11", {"vote_delegated_to_ids": []})
+        self.assert_model_exists("meeting_user/11", {"vote_delegated_to_ids": None})
 
     def test_update_delegation_self(self) -> None:
         self.create_meeting()

@@ -335,9 +335,6 @@ class MeetingUserMixin(MeetingUserHistoryMixin):
             ],
             raise_exception=False,
         )
-        db_vote_delegations_from_ids = meeting_user_self.get(
-            "vote_delegations_from_ids", []
-        )
         if "vote_delegations_from_ids" in instance:
             meeting_user_self.update(
                 {"vote_delegations_from_ids": instance["vote_delegations_from_ids"]}
@@ -362,7 +359,6 @@ class MeetingUserMixin(MeetingUserHistoryMixin):
             self.check_vote_delegations_from_ids(
                 instance,
                 meeting_user_self,
-                db_vote_delegations_from_ids,
                 user_id_self,
                 meeting_id_self,
             )
@@ -432,18 +428,10 @@ class MeetingUserMixin(MeetingUserHistoryMixin):
         self,
         instance: dict[str, Any],
         meeting_user_self: dict[str, Any],
-        db_vote_delegations_from_ids: list[int],
         user_id_self: int,
         meeting_id_self: int,
     ) -> None:
         delegated_from_ids = instance["vote_delegations_from_ids"]
-        added_delegations_from_ids = set(delegated_from_ids).difference(
-            db_vote_delegations_from_ids
-        )
-        if added_delegations_from_ids:
-            raise ActionException(
-                "Cannot add vote delegations via vote_delegations_from_ids."
-            )
         if delegated_from_ids and meeting_user_self.get("vote_delegated_to_ids"):
             raise ActionException(
                 f"User {user_id_self} cannot receive vote delegations, because he delegated his own vote."
@@ -452,19 +440,44 @@ class MeetingUserMixin(MeetingUserHistoryMixin):
             raise ActionException(
                 f"User {user_id_self} can't delegate the vote to himself."
             )
+        meeting = self.datastore.get(
+            fqid_from_collection_and_id("meeting", meeting_id_self),
+            ["users_vote_delegations_max_amount"],
+        )
+        max_amount = meeting.get("users_vote_delegations_max_amount") or 1
         vote_error_user_ids: list[int] = []
         meeting_error_user_ids: list[int] = []
+        max_amount_error_user_ids: list[int] = []
+        meeting_users = self.datastore.get_many(
+            [
+                GetManyRequest(
+                    "meeting_user",
+                    delegated_from_ids,
+                    [
+                        "vote_delegated_to_ids",
+                        "vote_delegations_from_ids",
+                        "user_id",
+                        "meeting_id",
+                    ],
+                )
+            ]
+        )["meeting_user"]
         for meeting_user_id in delegated_from_ids:
-            meeting_user = self.datastore.get(
-                fqid_from_collection_and_id("meeting_user", meeting_user_id),
-                ["vote_delegations_from_ids", "user_id", "meeting_id"],
-            )
+            if meeting_user_id not in meeting_users:
+                raise ModelDoesNotExist(
+                    fqid_from_collection_and_id("meeting_user", meeting_user_id)
+                )
+            meeting_user = meeting_users[meeting_user_id]
             if meeting_user.get("meeting_id") != meeting_id_self:
                 meeting_error_user_ids.append(cast(int, meeting_user.get("user_id")))
             if meeting_user.get("vote_delegations_from_ids") and meeting_user[
                 "vote_delegations_from_ids"
             ] != [instance["id"]]:
                 vote_error_user_ids.append(cast(int, meeting_user.get("user_id")))
+            delegated_to_ids = set(meeting_user.get("vote_delegated_to_ids", []))
+            delegated_to_ids.add(instance["id"])
+            if len(delegated_to_ids) > max_amount:
+                max_amount_error_user_ids.append(cast(int, meeting_user.get("user_id")))
         if meeting_error_user_ids:
             raise ActionException(
                 f"User(s) {meeting_error_user_ids} delegation ids don't belong to meeting {meeting_id_self}."
@@ -472,4 +485,8 @@ class MeetingUserMixin(MeetingUserHistoryMixin):
         elif vote_error_user_ids:
             raise ActionException(
                 f"User(s) {vote_error_user_ids} can't delegate their votes because they receive vote delegations."
+            )
+        elif max_amount_error_user_ids:
+            raise ActionException(
+                f"User(s) {max_amount_error_user_ids} cannot delegate their votes to more than {max_amount} users."
             )
