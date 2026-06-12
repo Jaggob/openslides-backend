@@ -217,10 +217,10 @@ class MeetingUserMergeMixin(
                     "number",
                     "about_me",
                     "vote_weight",
-                    "vote_delegated_to_id",
                     "meeting_id",
                 ],
                 "merge": [
+                    "vote_delegated_to_ids",
                     "vote_delegations_from_ids",
                     "chat_message_ids",
                     "group_ids",
@@ -284,7 +284,7 @@ class MeetingUserMergeMixin(
                     meeting_user_ids,
                     [
                         "vote_delegations_from_ids",
-                        "vote_delegated_to_id",
+                        "vote_delegated_to_ids",
                         "meeting_id",
                         "group_ids",
                     ],
@@ -296,12 +296,12 @@ class MeetingUserMergeMixin(
         meeting_ids: set[int] = set()
         meeting_id_by_group_ids: dict[int, int] = {}
         for m_user in meeting_users.values():
+            meeting_ids.add(m_user["meeting_id"])
             if len(g_ids := m_user.get("group_ids", [])):
                 meeting_id_by_group_ids.update(
                     {g_id: m_user["meeting_id"] for g_id in g_ids}
                 )
                 group_ids.update(g_ids)
-                meeting_ids.add(m_user["meeting_id"])
         if meeting_ids:
             polls = self.datastore.filter(
                 "poll",
@@ -336,26 +336,52 @@ class MeetingUserMergeMixin(
         proxy_meeting_user_ids = {
             meeting_user_id
             for meeting_user in meeting_users.values()
-            if (meeting_user_id := meeting_user.get("vote_delegated_to_id"))
+            for meeting_user_id in meeting_user.get("vote_delegated_to_ids", [])
         }
         is_delegator_by_meeting: dict[int, bool] = {}
         delegation_conflicts: set[str] = set()
         for meeting_user in meeting_users.values():
             meeting_id = meeting_user["meeting_id"]
-            for field in ["vote_delegated_to_id", "vote_delegations_from_ids"]:
+            for field in ["vote_delegated_to_ids", "vote_delegations_from_ids"]:
                 if meeting_user.get(field):
                     if is_delegator_by_meeting.get(meeting_id) == (
-                        field != "vote_delegated_to_id"
+                        field != "vote_delegated_to_ids"
                     ):
                         delegation_conflicts.add(str(meeting_id))
                     else:
                         is_delegator_by_meeting[meeting_id] = (
-                            field == "vote_delegated_to_id"
+                            field == "vote_delegated_to_ids"
                         )
         if len(delegation_conflicts):
             messages.append(
                 f"some of the selected users have different delegations roles in meeting(s) {', '.join(delegation_conflicts)}"
             )
+        vote_delegated_to_ids_by_meeting: dict[int, set[int]] = {}
+        for meeting_user in meeting_users.values():
+            if delegated_to_ids := meeting_user.get("vote_delegated_to_ids"):
+                vote_delegated_to_ids_by_meeting.setdefault(
+                    meeting_user["meeting_id"], set()
+                ).update(delegated_to_ids)
+        if vote_delegated_to_ids_by_meeting:
+            meetings = self.datastore.get_many(
+                [
+                    GetManyRequest(
+                        "meeting",
+                        list(vote_delegated_to_ids_by_meeting),
+                        ["users_vote_delegations_max_amount"],
+                    )
+                ]
+            )["meeting"]
+            too_many_delegation_meeting_ids = {
+                str(meeting_id)
+                for meeting_id, delegated_to_ids in vote_delegated_to_ids_by_meeting.items()
+                if len(delegated_to_ids)
+                > (meetings[meeting_id].get("users_vote_delegations_max_amount") or 1)
+            }
+            if too_many_delegation_meeting_ids:
+                messages.append(
+                    f"some of the selected users have too many vote delegations after merge in meeting(s) {', '.join(too_many_delegation_meeting_ids)}"
+                )
         if len(
             bad_users := [
                 id_

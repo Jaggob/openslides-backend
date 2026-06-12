@@ -10,7 +10,7 @@ If `meeting/poll_couple_countdown` is true, the countdown given by `meeting/poll
 
 Some fields are calculated upon stopping a poll:
 - The fields `votescast`, `votesvalid` and `votesinvalid` are filled (see [poll results](https://github.com/OpenSlides/OpenSlides/wiki/Voting#poll-results)). They are only filled once when the poll stops to prevent any changes e.g. from deleting users.
-- `entitled_users_at_stop` is filled. It is an array of objects which represents all users entitled to vote at the stopping point of the poll. The syntax is `{"user_id": Id, "voted": boolean, "vote_delegated_to_id": Id | null}`. The fields should be self-explanatory. This field is also a snapshot like the ones above.
+- `entitled_users_at_stop` is filled. It is an array of objects which represents all users entitled to vote at the stopping point of the poll. The syntax is `{"user_id": Id, "voted": boolean, "vote_delegated_to_user_ids": Id[]}`. The fields should be self-explanatory. This field is also a snapshot like the ones above.
 
 ## Permissions
 The request user needs:

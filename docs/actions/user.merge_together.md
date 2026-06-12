@@ -73,9 +73,9 @@ The secondary users are deleted.
 
 Any poll that contains the id of any secondary user in its `entitled_users_at_stop` list will have it re-written to _additionally_ contain the new user id.
 This means that a line
-`{"voted": false, "present": true, "user_id": 4, "vote_delegated_to_user_id": 7}`
+`{"voted": false, "present": true, "user_id": 4, "vote_delegated_to_user_ids": [7]}`
 becomes
-`{"voted": false, "present": true, "user_id": 4, "vote_delegated_to_user_id": 7, "user_merged_into_id": 2, "delegation_user_merged_into_id": 10}`
+`{"voted": false, "present": true, "user_id": 4, "vote_delegated_to_user_ids": [7], "user_merged_into_id": 2, "delegation_user_merged_into_ids": [10]}`
 after two merges where for the first `user/4` was merged into `user/2` and for the second `user/7` was merged into `user/10`.
 This is to ensure that the client can recognize where users were merged, as simply replacing the ids may cause situations where a user is present on a list twice and not replacing them would mean that the user that voted would not be recognizable anymore.
 
@@ -111,7 +111,7 @@ The primary model is updated/re-created with the information from the secondary 
 - `assignment_candidate_ids` is update-merged
 - `motion_editor_ids`, `motion_submitter_ids`, `motion_working_group_speaker_ids`, `personal_note_ids` and `speaker_ids` are create-merged
 - other relation-lists are set to the union of their content among all selected users
-- `comment`, `number`, `about_me`, `vote_weight`, `vote_delegated_to_id` are set to the value from the highest ranked model that has the field
+- `comment`, `number`, `about_me`, `vote_weight` are set to the value from the highest ranked model that has the field
 - `locked_out` is set to whatever the primary model of the sub-merge has
 
 #### Personal note merge

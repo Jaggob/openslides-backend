@@ -67,7 +67,7 @@ class PollStopActionTest(PollTestMixin, BasePollTestCase):
                 "meeting_user/2": {"vote_weight": Decimal("3.600000")},
                 "meeting_user/3": {
                     "vote_weight": Decimal("4.600000"),
-                    "vote_delegated_to_id": 1,
+                    "vote_delegated_to_ids": [1],
                 },
             }
         )
@@ -103,19 +103,19 @@ class PollStopActionTest(PollTestMixin, BasePollTestCase):
                         "voted": True,
                         "present": True,
                         "user_id": user1,
-                        "vote_delegated_to_user_id": None,
+                        "vote_delegated_to_user_ids": [],
                     },
                     {
                         "voted": False,
                         "present": True,
                         "user_id": user2,
-                        "vote_delegated_to_user_id": None,
+                        "vote_delegated_to_user_ids": [],
                     },
                     {
                         "voted": True,
                         "present": False,
                         "user_id": user3,
-                        "vote_delegated_to_user_id": user1,
+                        "vote_delegated_to_user_ids": [user1],
                     },
                 ],
             },
@@ -169,7 +169,7 @@ class PollStopActionTest(PollTestMixin, BasePollTestCase):
                         "voted": False,
                         "present": True,
                         "user_id": 2,
-                        "vote_delegated_to_user_id": None,
+                        "vote_delegated_to_user_ids": [],
                     },
                 ]
             },
@@ -199,7 +199,7 @@ class PollStopActionTest(PollTestMixin, BasePollTestCase):
                         "voted": False,
                         "present": False,
                         "user_id": 2,
-                        "vote_delegated_to_user_id": None,
+                        "vote_delegated_to_user_ids": [],
                     },
                 ]
             },
@@ -216,7 +216,7 @@ class PollStopActionTest(PollTestMixin, BasePollTestCase):
             {
                 "poll/1": {**self.poll_data, "content_object_id": "motion/1"},
                 "group/1": {"poll_ids": [1]},
-                "meeting_user/1": {"vote_delegated_to_id": 2},
+                "meeting_user/1": {"vote_delegated_to_ids": [2]},
             }
         )
         self.start_poll(1)
@@ -230,7 +230,40 @@ class PollStopActionTest(PollTestMixin, BasePollTestCase):
                         "voted": False,
                         "present": False,
                         "user_id": 2,
-                        "vote_delegated_to_user_id": 3,
+                        "vote_delegated_to_user_ids": [3],
+                    },
+                ]
+            },
+        )
+
+    def test_stop_entitled_users_with_multiple_delegations(self) -> None:
+        self.create_meeting(meeting_data={"users_enable_vote_delegations": True})
+        self.create_motion(1, 1)
+        user2 = self.create_user_for_meeting(1)
+        user3 = self.create_user_for_meeting(1)
+        user4 = self.create_user_for_meeting(1)
+        self.set_user_groups(user2, [1])
+        self.set_user_groups(user3, [3])
+        self.set_user_groups(user4, [3])
+        self.set_models(
+            {
+                "poll/1": {**self.poll_data, "content_object_id": "motion/1"},
+                "group/1": {"poll_ids": [1]},
+                "meeting_user/1": {"vote_delegated_to_ids": [2, 3]},
+            }
+        )
+        self.start_poll(1)
+        response = self.request("poll.stop", {"id": 1})
+        self.assert_status_code(response, 200)
+        self.assert_model_exists(
+            "poll/1",
+            {
+                "entitled_users_at_stop": [
+                    {
+                        "voted": False,
+                        "present": False,
+                        "user_id": user2,
+                        "vote_delegated_to_user_ids": [user3, user4],
                     },
                 ]
             },
@@ -247,7 +280,7 @@ class PollStopActionTest(PollTestMixin, BasePollTestCase):
             {
                 "poll/1": {**self.poll_data, "content_object_id": "motion/1"},
                 "group/1": {"poll_ids": [1]},
-                "meeting_user/1": {"vote_delegated_to_id": 2},
+                "meeting_user/1": {"vote_delegated_to_ids": [2]},
             }
         )
         self.start_poll(1)
@@ -261,7 +294,7 @@ class PollStopActionTest(PollTestMixin, BasePollTestCase):
                         "voted": False,
                         "present": False,
                         "user_id": 2,
-                        "vote_delegated_to_user_id": None,
+                        "vote_delegated_to_user_ids": [],
                     },
                 ]
             },
