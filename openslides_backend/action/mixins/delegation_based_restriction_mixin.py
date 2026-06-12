@@ -60,7 +60,7 @@ class DelegationBasedRestrictionMixin(Action):
                     for meeting_id in meeting_ids
                 ),
                 FilterOperator("user_id", "=", self.user_id),
-                FilterOperator("vote_delegated_to_ids", "!=", []),
+                FilterOperator("vote_delegated_to_ids", "!=", None),
             ),
             ["meeting_id"],
             lock_result=False,

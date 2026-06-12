@@ -391,8 +391,9 @@ class MeetingUserMixin(MeetingUserHistoryMixin):
             )
             max_amount = meeting.get("users_vote_delegations_max_amount") or 1
             if len(delegated_to_ids) > max_amount:
+                users_label = "user" if max_amount == 1 else "users"
                 raise ActionException(
-                    f"User {user_id_self} cannot delegate his vote to more than {max_amount} users."
+                    f"User {user_id_self} cannot delegate his vote to more than {max_amount} {users_label}."
                 )
             meeting_users_delegated_to = self.datastore.get_many(
                 [
@@ -470,6 +471,7 @@ class MeetingUserMixin(MeetingUserHistoryMixin):
             meeting_user = meeting_users[meeting_user_id]
             if meeting_user.get("meeting_id") != meeting_id_self:
                 meeting_error_user_ids.append(cast(int, meeting_user.get("user_id")))
+            # A delegator may only receive delegations if they delegate exactly to this receiver.
             if meeting_user.get("vote_delegations_from_ids") and meeting_user[
                 "vote_delegations_from_ids"
             ] != [instance["id"]]:
@@ -487,6 +489,7 @@ class MeetingUserMixin(MeetingUserHistoryMixin):
                 f"User(s) {vote_error_user_ids} can't delegate their votes because they receive vote delegations."
             )
         elif max_amount_error_user_ids:
+            users_label = "user" if max_amount == 1 else "users"
             raise ActionException(
-                f"User(s) {max_amount_error_user_ids} cannot delegate their votes to more than {max_amount} users."
+                f"User(s) {max_amount_error_user_ids} cannot delegate their votes to more than {max_amount} {users_label}."
             )
