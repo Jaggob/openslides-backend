@@ -154,7 +154,7 @@ class UserActionDelegationHistoryTest(BaseActionTestCase):
         )
         self.assert_status_code(response, 400)
         self.assertIn(
-            "User(s) [2] cannot delegate their votes to more than 1 users.",
+            "User(s) [2] cannot delegate their votes to more than 1 user.",
             response.json["message"],
         )
 
@@ -171,7 +171,7 @@ class UserActionDelegationHistoryTest(BaseActionTestCase):
         )
         self.assert_status_code(response, 400)
         self.assertIn(
-            "User(s) [2] cannot delegate their votes to more than 1 users.",
+            "User(s) [2] cannot delegate their votes to more than 1 user.",
             response.json["message"],
         )
 

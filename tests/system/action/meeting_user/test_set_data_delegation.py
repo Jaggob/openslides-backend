@@ -67,7 +67,7 @@ class UserUpdateDelegationActionTest(BaseActionTestCase):
         response = self.request_executor({"vote_delegated_to_ids": [11, 13]})
         self.assert_status_code(response, 400)
         self.assertIn(
-            "User 4 cannot delegate his vote to more than 1 users.",
+            "User 4 cannot delegate his vote to more than 1 user.",
             response.json["message"],
         )
 
@@ -299,7 +299,7 @@ class UserUpdateDelegationActionTest(BaseActionTestCase):
         response = self.request_executor({"vote_delegations_from_ids": [11, 12]})
         self.assert_status_code(response, 400)
         self.assertIn(
-            "User(s) [2] cannot delegate their votes to more than 1 users.",
+            "User(s) [2] cannot delegate their votes to more than 1 user.",
             response.json["message"],
         )
 
