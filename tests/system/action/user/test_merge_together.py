@@ -821,16 +821,50 @@ class UserMergeTogether(BaseActionTestCase):
     def test_with_multiple_delegations(self) -> None:
         self.set_models(
             {
-                "meeting_user/15": {"vote_delegated_to_id": 14},
-                "meeting_user/43": {"vote_delegated_to_id": 44},
-                "meeting_user/74": {"vote_delegated_to_id": 73},
+                "user/6": {"meeting_user_ids": [16]},
+                "meeting_user/15": {"vote_delegated_to_ids": [14]},
+                "meeting_user/16": {
+                    "user_id": 6,
+                    "meeting_id": 1,
+                    "group_ids": [2],
+                    "vote_delegated_to_ids": [14],
+                },
+                "meeting_user/43": {"vote_delegated_to_ids": [44]},
+                "meeting_user/74": {"vote_delegated_to_ids": [73]},
+                "group/2": {"meeting_user_ids": [12, 14, 15, 16]},
             }
         )
         response = self.request("user.merge_together", {"id": 2, "user_ids": [4]})
         self.assert_status_code(response, 200)
-        self.assert_model_exists("meeting_user/12", {"vote_delegations_from_ids": [15]})
+        self.assert_model_exists(
+            "meeting_user/12", {"vote_delegations_from_ids": [15, 16]}
+        )
         self.assert_model_exists("meeting_user/42", {"vote_delegations_from_ids": [43]})
-        self.assert_model_exists("meeting_user/106", {"vote_delegated_to_id": 73})
+        self.assert_model_exists("meeting_user/106", {"vote_delegated_to_ids": [73]})
+
+    def test_merge_with_multiple_delegations_over_limit_error(self) -> None:
+        self.set_models(
+            {
+                "meeting/1": {"users_vote_delegations_max_amount": 1},
+                "meeting_user/12": {"vote_delegated_to_ids": [15]},
+                "meeting_user/14": {"vote_delegated_to_ids": [15, 16]},
+                "meeting_user/16": {
+                    "user_id": 6,
+                    "meeting_id": 1,
+                    "group_ids": [2],
+                },
+                "user/6": {"meeting_user_ids": [16]},
+                "group/2": {"meeting_user_ids": [12, 14, 15, 16]},
+            }
+        )
+
+        response = self.request("user.merge_together", {"id": 2, "user_ids": [4]})
+
+        self.assert_status_code(response, 400)
+        assert (
+            "some of the selected users have too many vote delegations after merge in meeting(s) 1"
+            in response.json["message"]
+        )
 
     def set_up_polls_for_merge(self) -> None:
         self.create_assignment(1, 1)
@@ -842,7 +876,7 @@ class UserMergeTogether(BaseActionTestCase):
                 "meeting/4": {"present_user_ids": [3, 4]},
                 "meeting/7": {"present_user_ids": [2, 3, 4]},
                 "meeting/10": {"present_user_ids": [5]},
-                "meeting_user/15": {"vote_delegated_to_id": 14},
+                "meeting_user/15": {"vote_delegated_to_ids": [14]},
                 "motion_state/4": {"allow_create_poll": True},
                 "motion_submitter/1": {
                     "id": 1,

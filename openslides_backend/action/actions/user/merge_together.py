@@ -230,6 +230,11 @@ class UserMergeTogether(
                             field: current.pop(field)
                             for field in UserMixin.transfer_field_list
                             if field in current
+                            and field
+                            not in {
+                                "vote_delegated_to_ids",
+                                "vote_delegations_from_ids",
+                            }
                         },
                     }
                 )

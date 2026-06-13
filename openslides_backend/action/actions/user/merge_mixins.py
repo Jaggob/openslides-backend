@@ -372,6 +372,32 @@ class MeetingUserMergeMixin(
             messages.append(
                 f"some of the selected users have different delegations roles in meeting(s) {', '.join(delegation_conflicts)}"
             )
+        vote_delegated_to_ids_by_meeting: dict[int, set[int]] = {}
+        for meeting_user in meeting_users.values():
+            if delegated_to_ids := meeting_user.get("vote_delegated_to_ids"):
+                vote_delegated_to_ids_by_meeting.setdefault(
+                    meeting_user["meeting_id"], set()
+                ).update(delegated_to_ids)
+        if vote_delegated_to_ids_by_meeting:
+            meetings = self.datastore.get_many(
+                [
+                    GetManyRequest(
+                        "meeting",
+                        list(vote_delegated_to_ids_by_meeting),
+                        ["users_vote_delegations_max_amount"],
+                    )
+                ]
+            )["meeting"]
+            too_many_delegation_meeting_ids = {
+                str(meeting_id)
+                for meeting_id, delegated_to_ids in vote_delegated_to_ids_by_meeting.items()
+                if len(delegated_to_ids)
+                > (meetings[meeting_id].get("users_vote_delegations_max_amount") or 1)
+            }
+            if too_many_delegation_meeting_ids:
+                messages.append(
+                    f"some of the selected users have too many vote delegations after merge in meeting(s) {', '.join(too_many_delegation_meeting_ids)}"
+                )
         if len(
             bad_users := [
                 id_
