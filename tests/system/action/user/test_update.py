@@ -1622,10 +1622,12 @@ class UserUpdateActionTest(BaseActionTestCase):
             {"user_id": 111, "meeting_id": 4, "number": "number1 in 4"},
         )
         self.assert_model_exists(
-            "meeting_user/3", {"user_id": 5, "meeting_id": 1, "vote_delegated_to_ids": [7]}
+            "meeting_user/3",
+            {"user_id": 5, "meeting_id": 1, "vote_delegated_to_ids": [7]},
         )
         self.assert_model_exists(
-            "meeting_user/5", {"user_id": 6, "meeting_id": 1, "vote_delegated_to_ids": [7]}
+            "meeting_user/5",
+            {"user_id": 6, "meeting_id": 1, "vote_delegated_to_ids": [7]},
         )
 
     def test_perm_group_B_user_can_update_no_permission(self) -> None:

@@ -123,6 +123,21 @@ class UserUpdateDelegationActionTest(BaseActionTestCase):
             response.json["message"],
         )
 
+    def test_delegated_to_error_target_delegates_to_multiple(self) -> None:
+        # meeting_user/12 delegates to the actor (14) and to another user (13).
+        # Reversing only 12->14 would leave 12->13, so the actor must not be
+        # allowed to delegate to 12: the target must delegate to exactly the
+        # actor (or nobody) for the reversal to be valid.
+        self.set_models({"meeting_user/12": {"vote_delegated_to_ids": [14, 13]}})
+        response = self.request_executor(
+            {"vote_delegations_from_ids": [], "vote_delegated_to_ids": [12]}
+        )
+        self.assert_status_code(response, 400)
+        self.assertIn(
+            "User 4 cannot delegate his vote to user 2, because that user has delegated his vote himself.",
+            response.json["message"],
+        )
+
     def test_delegated_to_error_user_cannot_delegate_has_delegations_himself(
         self,
     ) -> None:

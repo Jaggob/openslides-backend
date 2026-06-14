@@ -392,7 +392,10 @@ class MeetingUserMergeMixin(
                 str(meeting_id)
                 for meeting_id, delegated_to_ids in vote_delegated_to_ids_by_meeting.items()
                 if len(delegated_to_ids)
-                > (meetings[meeting_id].get("users_vote_delegations_max_amount") or 1)
+                > max(
+                    meetings[meeting_id].get("users_vote_delegations_max_amount") or 1,
+                    1,
+                )
             }
             if too_many_delegation_meeting_ids:
                 messages.append(

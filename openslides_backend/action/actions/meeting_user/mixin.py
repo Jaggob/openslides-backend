@@ -389,7 +389,7 @@ class MeetingUserMixin(MeetingUserHistoryMixin):
                 fqid_from_collection_and_id("meeting", meeting_id_self),
                 ["users_vote_delegations_max_amount"],
             )
-            max_amount = meeting.get("users_vote_delegations_max_amount") or 1
+            max_amount = max(meeting.get("users_vote_delegations_max_amount") or 1, 1)
             if len(delegated_to_ids) > max_amount:
                 users_label = "user" if max_amount == 1 else "users"
                 raise ActionException(
@@ -417,10 +417,13 @@ class MeetingUserMixin(MeetingUserHistoryMixin):
                 delegated_target_to_ids = meeting_user_delegated_to.get(
                     "vote_delegated_to_ids", []
                 )
-                if (
-                    delegated_target_to_ids
-                    and instance["id"] not in delegated_target_to_ids
-                ):
+                # The target may only be delegated to if it does not itself
+                # delegate elsewhere. A mutual reversal (the target delegates
+                # exactly to this user, which this update removes) is allowed;
+                # any other delegation by the target is not.
+                if delegated_target_to_ids and delegated_target_to_ids != [
+                    instance["id"]
+                ]:
                     raise ActionException(
                         f"User {user_id_self} cannot delegate his vote to user {meeting_user_delegated_to['user_id']}, because that user has delegated his vote himself."
                     )
