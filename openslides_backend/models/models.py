@@ -934,7 +934,9 @@ class Meeting(Model, MeetingModelMixin):
         default="Dear {name},\n\nthis is your personal OpenSlides login:\n\n{url}\nUsername: {username}\nPassword: {password}\n\n\nThis email was generated automatically."
     )
     users_enable_vote_delegations = fields.BooleanField()
-    users_vote_delegations_max_amount = fields.IntegerField(default=1)
+    users_vote_delegations_max_amount = fields.IntegerField(
+        default=1, constraints={"minimum": 1}
+    )
     users_forbid_delegator_in_list_of_speakers = fields.BooleanField()
     users_forbid_delegator_as_submitter = fields.BooleanField()
     users_forbid_delegator_as_supporter = fields.BooleanField()
