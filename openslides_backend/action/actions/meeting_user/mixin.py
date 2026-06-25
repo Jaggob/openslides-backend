@@ -448,7 +448,7 @@ class MeetingUserMixin(MeetingUserHistoryMixin):
             fqid_from_collection_and_id("meeting", meeting_id_self),
             ["users_vote_delegations_max_amount"],
         )
-        max_amount = meeting.get("users_vote_delegations_max_amount") or 1
+        max_amount = max(meeting.get("users_vote_delegations_max_amount") or 1, 1)
         vote_error_user_ids: list[int] = []
         meeting_error_user_ids: list[int] = []
         max_amount_error_user_ids: list[int] = []

@@ -84,6 +84,9 @@ class UserMixin(CheckForArchivedMeetingMixin):
         "about_me": {"type": "string"},
         "vote_weight": decimal_schema,
         "structure_level_ids": id_list_schema,
+        # Duplicates are accepted and then de-duplicated in
+        # MeetingUserMixin.check_vote_delegated_to_ids, so e.g. [5, 5] with a max
+        # amount of 1 is treated as a single delegation instead of being rejected.
         "vote_delegated_to_ids": {**id_list_schema, "uniqueItems": False},
         "vote_delegations_from_ids": id_list_schema,
         "group_ids": id_list_schema,

@@ -24,6 +24,8 @@ class UserUpdateSelf(EmailCheckMixin, UpdateAction, UserMixin, UpdateHistoryMixi
         optional_properties=["username", "pronoun", "gender_id", "email"],
         additional_optional_fields={
             **MeetingUser().get_properties("meeting_id", "vote_delegations_from_ids"),
+            # Duplicates are accepted and de-duplicated in
+            # MeetingUserMixin.check_vote_delegated_to_ids.
             "vote_delegated_to_ids": {**id_list_schema, "uniqueItems": False},
         },
     )

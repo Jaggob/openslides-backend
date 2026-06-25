@@ -43,6 +43,8 @@ class MeetingUserSetData(
             "locked_out",
         ],
         additional_optional_fields={
+            # Duplicates are accepted and de-duplicated in
+            # MeetingUserMixin.check_vote_delegated_to_ids.
             "vote_delegated_to_ids": {**id_list_schema, "uniqueItems": False},
         },
     )
