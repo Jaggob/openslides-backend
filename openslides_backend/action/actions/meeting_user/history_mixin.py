@@ -318,25 +318,26 @@ class MeetingUserHistoryMixin(ExtendHistoryMixin, Action):
                         ],
                         for_user_id=old_to_user_id,
                     )
-            for to_user_id in [
-                muser["user_id"]
-                for muser in self.datastore.get_many(
-                    [
-                        GetManyRequest(
-                            "meeting_user", list(added_to_muser_ids), ["user_id"]
+            if added_to_muser_ids:
+                for to_user_id in [
+                    muser["user_id"]
+                    for muser in self.datastore.get_many(
+                        [
+                            GetManyRequest(
+                                "meeting_user", list(added_to_muser_ids), ["user_id"]
+                            )
+                        ],
+                        use_changed_models=True,
+                        lock_result=False,
+                    )["meeting_user"].values()
+                ]:
+                    instance_information.append(
+                        (
+                            "Vote delegated to {} in meeting {}",
+                            fqid_from_collection_and_id("user", to_user_id),
+                            fqid_from_collection_and_id("meeting", meeting_id),
                         )
-                    ],
-                    use_changed_models=True,
-                    lock_result=False,
-                )["meeting_user"].values()
-            ]:
-                instance_information.append(
-                    (
-                        "Vote delegated to {} in meeting {}",
-                        fqid_from_collection_and_id("user", to_user_id),
-                        fqid_from_collection_and_id("meeting", meeting_id),
                     )
-                )
                 self.add_entries_to_history_information(
                     information,
                     [
