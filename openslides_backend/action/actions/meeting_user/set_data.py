@@ -3,6 +3,7 @@ from typing import Any
 from ....models.models import MeetingUser
 from ....shared.exceptions import ActionException
 from ....shared.patterns import fqid_from_collection_and_id
+from ....shared.schema import id_list_schema
 from ...generics.update import UpdateAction
 from ...util.action_type import ActionType
 from ...util.default_schema import DefaultSchema
@@ -36,11 +37,16 @@ class MeetingUserSetData(
             "about_me",
             "vote_weight",
             "structure_level_ids",
-            "vote_delegated_to_id",
+            "vote_delegated_to_ids",
             "vote_delegations_from_ids",
             "group_ids",
             "locked_out",
         ],
+        additional_optional_fields={
+            # Duplicates are accepted and de-duplicated in
+            # MeetingUserMixin.check_vote_delegated_to_ids.
+            "vote_delegated_to_ids": {**id_list_schema, "uniqueItems": False},
+        },
     )
 
     def update_instance(self, instance: dict[str, Any]) -> dict[str, Any]:
