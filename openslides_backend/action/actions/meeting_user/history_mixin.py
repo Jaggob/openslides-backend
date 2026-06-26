@@ -338,17 +338,17 @@ class MeetingUserHistoryMixin(ExtendHistoryMixin, Action):
                             fqid_from_collection_and_id("meeting", meeting_id),
                         )
                     )
-                self.add_entries_to_history_information(
-                    information,
-                    [
-                        (
-                            "Proxy voting rights for {} received in meeting {}",
-                            fqid_from_collection_and_id("user", user_id),
-                            fqid_from_collection_and_id("meeting", meeting_id),
-                        )
-                    ],
-                    for_user_id=to_user_id,
-                )
+                    self.add_entries_to_history_information(
+                        information,
+                        [
+                            (
+                                "Proxy voting rights for {} received in meeting {}",
+                                fqid_from_collection_and_id("user", user_id),
+                                fqid_from_collection_and_id("meeting", meeting_id),
+                            )
+                        ],
+                        for_user_id=to_user_id,
+                    )
         if "vote_delegations_from_ids" in instance:
             new_delegations = set(instance.get("vote_delegations_from_ids", []))
             old_delegations = set(db_instance.get("vote_delegations_from_ids", []))

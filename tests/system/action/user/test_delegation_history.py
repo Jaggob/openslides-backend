@@ -97,6 +97,29 @@ class UserActionDelegationHistoryTest(BaseActionTestCase):
         self.make_request({"vote_delegated_to_ids": [self.bob_id - 1]}, self.alice_id)
         self.assert_delegated_to(self.alice_id, self.bob_id)
 
+    def test_update_delegate_vote_to_multiple_records_history_for_each(self) -> None:
+        self.set_models({"meeting/1": {"users_vote_delegations_max_amount": 2}})
+        self.make_request(
+            {
+                "vote_delegated_to_ids": [
+                    self.bob_meeting_user_id,
+                    self.colin_meeting_user_id,
+                ]
+            },
+            self.alice_id,
+        )
+        # Each newly added proxy must get its own "received" entry; a regression
+        # once recorded it only for the last target the loop visited.
+        for proxy_id in (self.bob_id, self.colin_id):
+            self.assert_history_information(
+                f"user/{proxy_id}",
+                [
+                    "Proxy voting rights for {} received in meeting {}",
+                    f"user/{self.alice_id}",
+                    "meeting/1",
+                ],
+            )
+
     def test_update_receive_delegated_vote(self) -> None:
         self.make_request(
             {"vote_delegations_from_ids": [self.alice_meeting_user_id]}, self.bob_id
