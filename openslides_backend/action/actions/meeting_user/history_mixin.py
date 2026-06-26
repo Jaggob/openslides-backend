@@ -386,46 +386,10 @@ class MeetingUserHistoryMixin(ExtendHistoryMixin, Action):
                         for_meeting_user_id=muser_id,
                     )
             if added:
-                db_added = [
-                    date
-                    for date in self.datastore.get_many(
-                        [
-                            GetManyRequest(
-                                "meeting_user",
-                                list(added),
-                                ["vote_delegated_to_ids", "user_id"],
-                            )
-                        ],
-                        use_changed_models=False,
-                        lock_result=False,
-                    )["meeting_user"].values()
-                    if date.get("vote_delegated_to_ids")
-                ]
-                for date in db_added:
-                    self.add_entries_to_history_information(
-                        information,
-                        [
-                            (
-                                "Vote delegation canceled in meeting {}",
-                                fqid_from_collection_and_id("meeting", meeting_id),
-                            )
-                        ],
-                        for_user_id=date["user_id"],
-                    )
-                    for meeting_user_id in date["vote_delegated_to_ids"]:
-                        self.add_entries_to_history_information(
-                            information,
-                            [
-                                (
-                                    "Proxy voting rights for {} removed in meeting {}",
-                                    fqid_from_collection_and_id(
-                                        "user", date["user_id"]
-                                    ),
-                                    fqid_from_collection_and_id("meeting", meeting_id),
-                                )
-                            ],
-                            for_meeting_user_id=meeting_user_id,
-                        )
+                # Receiving a delegation is additive on the delegator's side
+                # (n:m): the newly added delegators keep their existing proxies
+                # and merely gain this receiver, so nothing is canceled/removed
+                # here. The "delegated to"/"received" entries below cover it.
                 added_user_ids = [
                     str(m_user["user_id"])
                     for m_user in self.datastore.get_many(

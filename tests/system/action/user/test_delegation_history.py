@@ -120,6 +120,36 @@ class UserActionDelegationHistoryTest(BaseActionTestCase):
                 ],
             )
 
+    def test_update_receive_delegation_keeps_adders_existing_proxy(self) -> None:
+        # Bob already delegates to Colin; with a max amount of 2 he keeps Colin
+        # and additionally delegates to Alice when she receives his vote. Adding
+        # a delegator is purely additive on his side, so nothing must be logged
+        # as canceled/removed for Bob or his existing proxy Colin.
+        self.set_models(
+            {
+                "meeting/1": {"users_vote_delegations_max_amount": 2},
+                f"meeting_user/{self.bob_meeting_user_id}": {
+                    "vote_delegated_to_ids": [self.colin_meeting_user_id]
+                },
+                f"meeting_user/{self.colin_meeting_user_id}": {
+                    "vote_delegations_from_ids": [self.bob_meeting_user_id]
+                },
+            }
+        )
+        self.make_request(
+            {"vote_delegations_from_ids": [self.bob_meeting_user_id]}, self.alice_id
+        )
+        self.assert_history_information(
+            f"user/{self.bob_id}",
+            [
+                "Vote delegated to {} in meeting {}",
+                f"user/{self.alice_id}",
+                "meeting/1",
+            ],
+        )
+        # Colin's delegation from Bob is untouched, so he gets no history entry.
+        self.assert_history_information(f"user/{self.colin_id}", None)
+
     def test_update_receive_delegated_vote(self) -> None:
         self.make_request(
             {"vote_delegations_from_ids": [self.alice_meeting_user_id]}, self.bob_id
